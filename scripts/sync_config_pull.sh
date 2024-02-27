@@ -1,5 +1,12 @@
 #!/bin/bash
-cd /root/autodl-tmp/MotionBERT
+dst_dir=/root/autodl-tmp/MotionBERT
+if [ ! -d $dst_dir ]; then
+  echo "The directory $dst_dir does not exist."
+  exit 1
+fi
+
+cd $dst_dir
+
 WORKDIR="_remote_config"
 mkdir -p $WORKDIR
 cd $WORKDIR
