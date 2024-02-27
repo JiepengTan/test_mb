@@ -10,13 +10,15 @@ fi
 dir_path=./checkpoint/pose3d/$dir_name
 mkdir -p $dir_path
 
-echo "==============start train $dir_path=================="
 
 ps -ef | grep train | awk '{print $2}' | xargs kill -9
 
 nohup_train_log=$dir_path/nohup_train.out
 rm $nohup_train_log
 # start train task
+
+echo "==============start train $dir_path=================="
+
 nohup python train.py --config configs/pose3d/MB_ft_h36m.yaml --pretrained checkpoint/pretrain/MB_release --checkpoint checkpoint/pose3d/${dir_name} > ${nohup_train_log}  2>&1 &
 
 
