@@ -15,8 +15,6 @@ cp -r ./configs $dst_dir
 
 # auto sync to git 
 WORKDIR=$dst_dir
-REMOTE="origin"
-BRANCH="main"
 cd $WORKDIR
 if [ ! -d ".git" ]; then
     echo "Error: Directory $WORKDIR is not a git repository."
@@ -24,5 +22,5 @@ if [ ! -d ".git" ]; then
 fi
 git add .
 git commit -m "Auto commit: $(date)"
-git push $REMOTE $BRANCH --force
+git push origin main --force
 cd -
