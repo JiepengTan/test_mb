@@ -16,7 +16,7 @@ cp -r ./configs $dst_dir
 # auto sync to git 
 WORKDIR=$dst_dir
 REMOTE="origin"
-BRANCH="master"
+BRANCH="main"
 cd $WORKDIR
 if [ ! -d ".git" ]; then
     echo "Error: Directory $WORKDIR is not a git repository."
