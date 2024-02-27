@@ -8,8 +8,7 @@ if [ ! -d ".git" ]; then
 fi
 git pull origin main
 cd -
-echo done
-exit 1
+
 cp -rf $WORKDIR/scripts/* .
 
 rm -rf ./config
