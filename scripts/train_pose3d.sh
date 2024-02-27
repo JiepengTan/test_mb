@@ -15,6 +15,7 @@ echo hello
 ps -ef | grep train | awk '{print $2}' | xargs kill -9
 
 nohup_train_log=$dir_path/nohup_train.out
+echo $nohup_train_log
 if [ -f $nohup_train_log ]; then
     echo "The file $nohup_train_log exist."
     rm -rf $nohup_train_log
