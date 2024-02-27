@@ -1,6 +1,6 @@
 #!/bin/bash
-
-WORKDIR="./test"
+cd /root/autodl-tmp/MotionBERT
+WORKDIR="_remote_config"
 mkdir -p $WORKDIR
 cd $WORKDIR
 if [ ! -d ".git" ]; then
