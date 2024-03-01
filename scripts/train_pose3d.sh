@@ -29,11 +29,11 @@ nohup python train.py --config configs/pose3d/MB_ft_unity.yaml --pretrained chec
 echo "==============start tensorboard =================="
 # start tensorboard
 ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
-nohup tensorboard --port 6007 --logdir ${dir_nadir_pathme}/logs/ &
+nohup tensorboard --port 6007 --logdir ${dir_path}/logs/ &
 
 
 # view the train logs
 tail -f $nohup_train_log
 
 # ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
-# nohup tensorboard --port 6007 --logdir ./checkpoint/pose3d/ft_wp3/logs/ &
+# nohup tensorboard --port 6007 --logdir ./checkpoint/pose3d/ft_unity/logs/ &
