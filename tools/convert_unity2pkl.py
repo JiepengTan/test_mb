@@ -47,7 +47,7 @@ def test_read(input_dir, idx):
     print(data2d.shape)
     print(data3d.shape)     
 
-def move_file(dst_dir, src_idx, dst_idx):
+def move_file(input_dir, dst_dir, src_idx, dst_idx):
     src_path =os.path.join(input_dir,"" "%08d.pkl" % src_idx)
     dst_path =os.path.join(dst_dir, "%08d.pkl" % dst_idx)
     shutil.move(src_path, dst_path)
@@ -69,10 +69,10 @@ def copy_test_train_set(input_dir, output_dir,test_rate):
     import random
     for idx in range(total_count):
         if random.random() <= test_rate :
-            move_file(test_dir,idx,test_idx) 
+            move_file(input_dir,test_dir,idx,test_idx) 
             test_idx +=1
         else :
-            move_file(train_dir,idx,train_idx) 
+            move_file(input_dir,train_dir,idx,train_idx) 
             train_idx +=1
         
 
