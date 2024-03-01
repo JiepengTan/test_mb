@@ -111,7 +111,7 @@ tmp_dir = os.path.join(output_dir, "tmp")
 
 if not is_only_copy :
     print('===== convert from unity ==========')
-    convert_all(input_dir, tmp_dir)
+    #convert_all(input_dir, tmp_dir)
 
 print('===== create test train dataset ==========')
 copy_test_train_set(tmp_dir, output_dir, 0.15)
