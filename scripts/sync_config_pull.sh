@@ -21,4 +21,8 @@ cp -rf $WORKDIR/scripts/* .
 rm -rf ./config
 cp -rf $WORKDIR/configs .
 
+rm -rf ./tools
+cp -rf $WORKDIR/tools .
+
+
 
