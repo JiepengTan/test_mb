@@ -2,7 +2,7 @@
 pip install pyyaml
 pip install numpy==1.23.0
 
-dir_name=ft_wp3
+dir_name=ft_unity
 if [ $# -ge 1 ]; then
     dir_name=$1
 fi
@@ -11,7 +11,6 @@ dir_path=./checkpoint/pose3d/$dir_name
 mkdir -p $dir_path
 
 
-echo hello
 ps -ef | grep python | awk '{print $2}' | xargs kill -9
 
 nohup_train_log=$dir_path/nohup_train.out
@@ -24,7 +23,7 @@ fi
 # start train task
 echo "==============start train $dir_path =================="
 
-nohup python train.py --config configs/pose3d/MB_ft_h36m.yaml --pretrained checkpoint/pretrain/MB_release --checkpoint checkpoint/pose3d/${dir_name} > ${nohup_train_log}  2>&1 &
+nohup python train.py --config configs/pose3d/MB_ft_unity.yaml --pretrained checkpoint/pretrain/MB_release --checkpoint checkpoint/pose3d/${dir_name} > ${nohup_train_log}  2>&1 &
 
 
 echo "==============start tensorboard =================="

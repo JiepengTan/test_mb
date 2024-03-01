@@ -1,5 +1,4 @@
 import os
-import subprocess
 import numpy as np
 import argparse
 import errno
@@ -27,7 +26,6 @@ from lib.data.augmentation import Augmenter2D
 from lib.data.datareader_h36m import DataReaderH36M  
 from lib.model.loss import *
 
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="configs/pretrain.yaml", help="Path to the config file.")
@@ -37,8 +35,6 @@ def parse_args():
     parser.add_argument('-e', '--evaluate', default='', type=str, metavar='FILENAME', help='checkpoint to evaluate (file name)')
     parser.add_argument('-ms', '--selection', default='latest_epoch.bin', type=str, metavar='FILENAME', help='checkpoint to finetune (file name)')
     parser.add_argument('-sd', '--seed', default=0, type=int, help='random seed')
-    parser.add_argument('--epoch_script', type=str, default="infer_pose3d.sh",  help='execute after echo epoch ')
-
     opts = parser.parse_args()
     return opts
 
@@ -60,7 +56,6 @@ def save_checkpoint(chk_path, epoch, lr, optimizer, model_pos, min_loss):
 def evaluate(args, model_pos, test_loader, datareader):
     print('INFO: Testing')
     results_all = []
-    gt_all = []
     model_pos.eval()            
     with torch.no_grad():
         for batch_input, batch_gt in tqdm(test_loader):
@@ -85,34 +80,73 @@ def evaluate(args, model_pos, test_loader, datareader):
             if args.gt_2d:
                 predicted_3d_pos[...,:2] = batch_input[...,:2]
             results_all.append(predicted_3d_pos.cpu().numpy())
-            gt_all.append(batch_gt.cpu().numpy())
     results_all = np.concatenate(results_all)
-    gt_all = np.concatenate(gt_all)
-    count = len(gt_all)
-    print(f"eval count {count} results_all={results_all.shape}")
-  
-    e1_all = 0
-    e2_all = 0
-    oc = 0
-    for idx in range(count):
-        gt = gt_all[idx]
+    results_all = datareader.denormalize(results_all)
+    _, split_id_test = datareader.get_split_id()
+    actions = np.array(datareader.dt_dataset['test']['action'])
+    factors = np.array(datareader.dt_dataset['test']['2.5d_factor'])
+    gts = np.array(datareader.dt_dataset['test']['joints_2.5d_image'])
+    sources = np.array(datareader.dt_dataset['test']['source'])
+
+    num_test_frames = len(actions)
+    frames = np.array(range(num_test_frames))
+    action_clips = actions[split_id_test]
+    factor_clips = factors[split_id_test]
+    source_clips = sources[split_id_test]
+    frame_clips = frames[split_id_test]
+    gt_clips = gts[split_id_test]
+    assert len(results_all)==len(action_clips)
+    
+    e1_all = np.zeros(num_test_frames)
+    e2_all = np.zeros(num_test_frames)
+    oc = np.zeros(num_test_frames)
+    results = {}
+    results_procrustes = {}
+    action_names = sorted(set(datareader.dt_dataset['test']['action']))
+    for action in action_names:
+        results[action] = []
+        results_procrustes[action] = []
+    block_list = ['s_09_act_05_subact_02', 
+                  's_09_act_10_subact_02', 
+                  's_09_act_13_subact_01']
+    for idx in range(len(action_clips)):
+        source = source_clips[idx][0][:-6]
+        if source in block_list:
+            continue
+        frame_list = frame_clips[idx]
+        action = action_clips[idx][0]
+        factor = factor_clips[idx][:,None,None]
+        gt = gt_clips[idx]
         pred = results_all[idx]
+        pred *= factor
         
         # Root-relative Errors
         pred = pred - pred[:,0:1,:]
         gt = gt - gt[:,0:1,:]
         err1 = mpjpe(pred, gt)
         err2 = p_mpjpe(pred, gt)
-        e1_all += err1
-        e2_all += err2
-        oc += 1
-    e1 = e1_all / oc
-    e2 = e2_all / oc
-
-    e1 = np.mean(np.array(e1))
-    e2 = np.mean(np.array(e2))
-
-
+        e1_all[frame_list] += err1
+        e2_all[frame_list] += err2
+        oc[frame_list] += 1
+    for idx in range(num_test_frames):
+        if e1_all[idx] > 0:
+            err1 = e1_all[idx] / oc[idx]
+            err2 = e2_all[idx] / oc[idx]
+            action = actions[idx]
+            results[action].append(err1)
+            results_procrustes[action].append(err2)
+    final_result = []
+    final_result_procrustes = []
+    summary_table = prettytable.PrettyTable()
+    summary_table.field_names = ['test_name'] + action_names
+    for action in action_names:
+        final_result.append(np.mean(results[action]))
+        final_result_procrustes.append(np.mean(results_procrustes[action]))
+    summary_table.add_row(['P1'] + final_result)
+    summary_table.add_row(['P2'] + final_result_procrustes)
+    print(summary_table)
+    e1 = np.mean(np.array(final_result))
+    e2 = np.mean(np.array(final_result_procrustes))
     print('Protocol #1 Error (MPJPE):', e1, 'mm')
     print('Protocol #2 Error (P-MPJPE):', e2, 'mm')
     print('----------')
@@ -148,6 +182,9 @@ def train_epoch(args, model_pos, train_loader, losses, optimizer, has_3d, has_gt
             loss_lg = loss_limb_gt(predicted_3d_pos, batch_gt)
             loss_a = loss_angle(predicted_3d_pos, batch_gt)
             loss_av = loss_angle_velocity(predicted_3d_pos, batch_gt)
+            # 重点考察 速度的差(这在动画中更加关键) , 其次是骨骼位置的差(相对不那么重要) 
+            # 对动画而言,其实相比骨骼位置的差，骨骼的旋转差,其实更加本质 
+            # 更进一步地，希望他能够学习到 人类骨骼的长度在动画持续过程中是固定的 (直接体现在loss 计算中可能会更好)
             loss_total = loss_3d_pos + \
                          args.lambda_scale       * loss_3d_scale + \
                          args.lambda_3d_velocity * loss_3d_velocity + \
@@ -343,12 +380,7 @@ def train_with_config(args, opts):
             if e1 < min_loss:
                 min_loss = e1
                 save_checkpoint(chk_path_best, epoch, lr, optimizer, model_pos, min_loss)
-            # execute script 
-            if opts.epoch_script != "":
-                script_path = os.path.join(os.getcwd(),opts.epoch_script)
-                print(f"======= run scirpt {script_path} {epoch} ======= ")
-                process = subprocess.Popen([script_path, str(epoch)])
-
+                
     if opts.evaluate:
         e1, e2, results_all = evaluate(args, model_pos, test_loader, datareader)
 
