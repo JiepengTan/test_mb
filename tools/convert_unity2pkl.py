@@ -116,8 +116,8 @@ print('===== convert from unity ==========')
 convert_all(input_dir, tmp_dir)
 
 print('===== create test train dataset ==========')
-copy_test_train_set(tmp_dir, output_dir, 0.15)
+#copy_test_train_set(tmp_dir, output_dir, 0.15)
 #test_read(output_dir,0)
 
-shutil.rmtree(tmp_dir)
+#shutil.rmtree(tmp_dir)
 print("done")
