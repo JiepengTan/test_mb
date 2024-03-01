@@ -47,6 +47,11 @@ def test_read(input_dir, idx):
     print(data2d.shape)
     print(data3d.shape)     
 
+def move_file(dst_dir, src_idx, dst_idx):
+    src_path =os.path.join(input_dir,"" "%08d.pkl" % src_idx)
+    dst_path =os.path.join(dst_dir, "%08d.pkl" % dst_idx)
+    shutil.move(src_path, dst_path)
+    print(src_path + " => " + dst_path)
 
 def copy_test_train_set(input_dir, output_dir,test_rate):
     total_count = len([name for name in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, name))])
@@ -58,19 +63,11 @@ def copy_test_train_set(input_dir, output_dir,test_rate):
     if not os.path.exists(test_dir):
         os.makedirs(test_dir)
 
-    def move_file(dst_dir, src_idx, dst_idx):
-        src_path =os.path.join(input_dir,"" "%08d.pkl" % src_idx)
-        dst_path =os.path.join(dst_dir, "%08d.pkl" % dst_idx)
-        shutil.move(src_path, dst_path)
-        #print(src_path + " => " + dst_path)
-
     train_idx = 0
     test_idx =0
 
     import random
     for idx in range(total_count):
-        if(idx > 100):
-            return
         if random.random() <= test_rate :
             move_file(test_dir,idx,test_idx) 
             test_idx +=1
@@ -95,8 +92,8 @@ def convert_all(root_path, output_dir):
 
 input_dir = "../../MotionGen/Unity/Output/MotionBERT/Anim/"
 output_dir = "data/motion3d/unity/"
-
-if len(sys.argv) == 3:
+is_only_copy = len(sys.argv) >= 4
+if len(sys.argv) >= 3:
     input_dir = sys.argv[1]
     output_dir = sys.argv[2]
 elif len(sys.argv) != 1:
@@ -112,12 +109,12 @@ os.makedirs(output_dir)
 
 tmp_dir = os.path.join(output_dir, "tmp")
 
-print('===== convert from unity ==========')
-convert_all(input_dir, tmp_dir)
+if not is_only_copy :
+    print('===== convert from unity ==========')
+    convert_all(input_dir, tmp_dir)
 
 print('===== create test train dataset ==========')
-#copy_test_train_set(tmp_dir, output_dir, 0.15)
-#test_read(output_dir,0)
+copy_test_train_set(tmp_dir, output_dir, 0.15)
 
 #shutil.rmtree(tmp_dir)
 print("done")
