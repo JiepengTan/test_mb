@@ -95,14 +95,10 @@ def parse_args():
     parser.add_argument('--focus', type=int, default=None, help='target person id')
     parser.add_argument('--clip_len', type=int, default=243, help='clip length for network input')
     parser.add_argument('--render', type=bool, default=False, help='render it')
-    parser.add_argument('--only_render', type=bool, default=False, help='render it')
     opts = parser.parse_args()
     return opts
 
 # This is how you would call the function from another script
 if __name__ == "__main__":
     opts = parse_args()
-    if(opts.only_render) : 
-        render_all_epoch()
-        return 
     run_3d_pose_estimation(opts)
