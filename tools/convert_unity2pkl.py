@@ -104,7 +104,7 @@ if os.path.exists(output_dir):
     shutil.rmtree(output_dir)
 os.makedirs(output_dir)
 
-tmp_dir = os.path.join(output_dir, "tmp")
+tmp_dir = os.path.join(output_dir, "tmpdir")
 
 if not is_only_copy :
     print('===== convert from unity ==========')
