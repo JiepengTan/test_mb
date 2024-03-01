@@ -44,7 +44,6 @@ class MotionDataset3D(MotionDataset):
         'Generates one sample of data'
         # Select sample
         file_path = self.file_list[index]
-        print(file_path)
         motion_file = read_pkl(file_path)
         motion_3d = motion_file["data_label"]  
         motion_3d = torch.FloatTensor(motion_3d)
