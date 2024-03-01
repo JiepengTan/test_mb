@@ -76,7 +76,6 @@ def copy_test_train_set(input_dir, output_dir,test_rate):
             train_idx +=1
         
 
-max_data_count = 0
 def convert_all(root_path, output_dir):
     os.makedirs(output_dir)
     data_path = root_path
@@ -85,8 +84,6 @@ def convert_all(root_path, output_dir):
     idx = 0
     for flie_name in motion_list:
         idx += 1
-        if(max_data_count >0 and idx > max_data_count) :
-            return
         parse_unity_data(os.path.join(data_path,flie_name),output_dir)
 
 
@@ -111,7 +108,7 @@ tmp_dir = os.path.join(output_dir, "tmp")
 
 if not is_only_copy :
     print('===== convert from unity ==========')
-    #convert_all(input_dir, tmp_dir)
+    convert_all(input_dir, tmp_dir)
 
 print('===== create test train dataset ==========')
 copy_test_train_set(tmp_dir, output_dir, 0.15)
