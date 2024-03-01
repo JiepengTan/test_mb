@@ -341,12 +341,17 @@ def train_with_config(args, opts):
                    losses['3d_pos'].avg))
             else:
                 e1, e2, results_all = evaluate(args, model_pos, test_loader, datareader)
-                print('[%d] time %.2f lr %f 3d_train %f e1 %f e2 %f' % (
-                    epoch + 1,
-                    elapsed,
-                    lr,
-                    losses['3d_pos'].avg,
-                    e1, e2))
+                print('[%d] $$$time %.2f lr %f e1 %f e2 %f loss_3d_pos %f loss_2d_proj %f loss_3d_scale %f loss_3d_velocity %f loss_lv %f loss_lg %f loss_a %f loss_av %f loss_total %f' % (
+                    epoch + 1, elapsed, lr,  e1, e2
+                    , losses['3d_pos'].avg
+                    , losses['2d_proj'].avg
+                    , losses['3d_scale'].avg
+                    , losses['3d_velocity'].avg
+                    , losses['lv'].avg
+                    , losses['lg'].avg
+                    , losses['angle'].avg
+                    , losses['angle_velocity'].avg
+                    , losses['total'].avg))
                 train_writer.add_scalar('Error P1', e1, epoch + 1)
                 train_writer.add_scalar('Error P2', e2, epoch + 1)
                 train_writer.add_scalar('loss_3d_pos', losses['3d_pos'].avg, epoch + 1)
