@@ -5,6 +5,11 @@ if [ $# -ge 1 ]; then
     dir_name=$1
 fi
 
+if [ !  -f $dir_name ]; then
+    echo "The file $dir_name not exist."
+    exit 1
+fi
+
 ps -ef | grep python | awk '{print $2}' | xargs kill -9
 ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
 rm -rf ./checkpoint/pose3d/ft_unity/logs/
