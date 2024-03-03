@@ -11,7 +11,7 @@ dir_path=./checkpoint/pose3d/$dir_name
 mkdir -p $dir_path
 
 
-ps -ef | grep python | awk '{print $2}' | xargs kill -9
+ps -ef | grep train.py | awk '{print $2}' | xargs kill -9
 
 nohup_train_log=$dir_path/nohup_train.out
 

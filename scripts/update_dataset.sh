@@ -22,6 +22,7 @@ unzip  $dir_name -d ./unity_data/
 # 3. preprocess the unity dataset
 python tools/convert_unity2pkl.py ./unity_data/ ./data/motion3d/unity
 
+python tools/render_infer_result.py &
 ./train_pose3d.sh
 
 echo "====start result render===="
