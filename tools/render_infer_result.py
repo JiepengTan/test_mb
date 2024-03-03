@@ -26,7 +26,9 @@ def render_all_epoch():
             time.sleep(10)
 
         results_all = np.load(path)
-        render_and_save(results_all, '%s/%s.mp4' % (output_dir, str(idx)), keep_imgs=False, fps=fps_in)
+        output_path ='%s/%s.mp4' % (output_dir, str(idx))
+        print(output_path)
+        render_and_save(results_all, output_path, keep_imgs=False, fps=fps_in)
 
 # This is how you would call the function from another script
 if __name__ == "__main__":
