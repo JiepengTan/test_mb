@@ -81,9 +81,6 @@ def evaluate(args, model_pos, test_loader, datareader):
                 predicted_3d_pos[:,:,0,:] = 0     # [N,T,17,3]
             else:
                 batch_gt[:,0,0,2] = 0
-
-            if args.gt_2d:
-                predicted_3d_pos[...,:2] = batch_input[...,:2]
             results_all.append(predicted_3d_pos.cpu().numpy())
             gt_all.append(batch_gt.cpu().numpy())
     results_all = np.concatenate(results_all)
