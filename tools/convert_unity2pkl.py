@@ -65,9 +65,14 @@ def copy_test_train_set(input_dir, output_dir,test_rate):
 
     train_idx = 0
     test_idx =0
+    indexs = []
 
     import random
     for idx in range(total_count):
+        indexs.append(idx)
+    random.shuffle(indexs)
+
+    for idx in indexs:
         if random.random() <= test_rate :
             move_file(input_dir,test_dir,idx,test_idx) 
             test_idx +=1
