@@ -6,7 +6,7 @@ partial_train: null
 
 # Traning 
 epochs: 60
-checkpoint_frequency: 30
+checkpoint_frequency: 10
 batch_size: 8 
 dropout: 0.0
 learning_rate: 0.0002

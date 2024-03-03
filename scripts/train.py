@@ -97,6 +97,7 @@ def evaluate(args, model_pos, test_loader, datareader):
     for idx in range(count):
         gt = gt_all[idx]
         pred = results_all[idx]
+        #pred *= factor
         
         # Root-relative Errors
         pred = pred - pred[:,0:1,:]
