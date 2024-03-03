@@ -17,7 +17,6 @@ rm -rf ./examples/train_result
 
 rm -rf ./unity_data/
 unzip  $dir_name -d ./unity_data/
-rm $dir_name
 
 
 # 3. preprocess the unity dataset
