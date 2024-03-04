@@ -70,11 +70,6 @@ def run_3d_pose_estimation(opts):
                 predicted_3d_pos = (predicted_3d_pos_1 + predicted_3d_pos_2) / 2.0
             else:
                 predicted_3d_pos = model_pos(batch_input)
-            if False:
-                predicted_3d_pos[:,:,0,:]=0                    # [N,T,17,3]
-            else:
-                predicted_3d_pos[:,0,0,2]=0
-                pass
             results_all.append(predicted_3d_pos.cpu().numpy())
 
     results_all = np.hstack(results_all)
