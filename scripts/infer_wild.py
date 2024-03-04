@@ -45,7 +45,6 @@ def run_3d_pose_estimation(opts):
     os.makedirs(opts.out_path, exist_ok=True)
 
     if opts.pixel:
-        print("hehe")
         # Keep relative scale with pixel coornidates
         wild_dataset = WildDetDataset(opts.json_path, clip_len=opts.clip_len, vid_size=vid_size, scale_range=None, focus=opts.focus)
     else:

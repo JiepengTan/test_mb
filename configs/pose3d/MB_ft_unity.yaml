@@ -28,7 +28,7 @@ subset_list: [unity]
 dt_file: h36m_sh_conf_cam_source_final.pkl
 clip_len: 243
 data_stride: 81
-rootrel: True
+rootrel: False
 sample_stride: 1
 num_joints: 17
 no_conf: False
