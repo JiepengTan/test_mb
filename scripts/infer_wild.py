@@ -35,8 +35,8 @@ def run_3d_pose_estimation(opts):
     }
     print("isUnity = " + str(opts.unity))
     if opts.unity:
-        fps_in = 30
-        vid_size =[1920,1080]
+        fps_in = 60
+        vid_size =[1920,-1080]
     else:
         vid = imageio.get_reader(opts.vid_path,  'ffmpeg')
         fps_in = vid.get_meta_data()['fps']
@@ -45,6 +45,7 @@ def run_3d_pose_estimation(opts):
     os.makedirs(opts.out_path, exist_ok=True)
 
     if opts.pixel:
+        print("hehe")
         # Keep relative scale with pixel coornidates
         wild_dataset = WildDetDataset(opts.json_path, clip_len=opts.clip_len, vid_size=vid_size, scale_range=None, focus=opts.focus)
     else:
