@@ -36,7 +36,7 @@ def run_3d_pose_estimation(opts):
     print("isUnity = " + str(opts.unity))
     if opts.unity:
         fps_in = 60
-        vid_size =[1920,-1080]
+        vid_size =[1920,1080]
     else:
         vid = imageio.get_reader(opts.vid_path,  'ffmpeg')
         fps_in = vid.get_meta_data()['fps']
