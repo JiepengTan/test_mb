@@ -8,8 +8,8 @@ if [ $# -ge 1 ]; then
 fi
 
 dir_path=./checkpoint/pose3d/$dir_name
+rm -rf $dir_path
 mkdir -p $dir_path
-
 
 ps -ef | grep python | awk '{print $2}' | xargs kill -9
 
@@ -32,6 +32,7 @@ ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
 nohup tensorboard --port 6007 --logdir $dir_path/logs/ &
 
 echo "====start result render===="
+rm -rf ./examples/train_result/
 nohup python tools/render_infer_result.py &
 
 # view the train logs

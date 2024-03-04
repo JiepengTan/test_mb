@@ -11,9 +11,6 @@ if [ !  -f $dir_name ]; then
 fi
 
 ps -ef | grep python | awk '{print $2}' | xargs kill -9
-ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
-rm -rf ./checkpoint/pose3d/ft_unity/logs/
-rm -rf ./examples/train_result/
 
 rm -rf ./unity_data/
 unzip  $dir_name -d ./unity_data/
