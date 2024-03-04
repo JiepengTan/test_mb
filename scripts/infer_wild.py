@@ -33,10 +33,15 @@ def run_3d_pose_estimation(opts):
             'persistent_workers': True,
             'drop_last': False
     }
-
-    vid = imageio.get_reader(opts.vid_path,  'ffmpeg')
-    fps_in = vid.get_meta_data()['fps']
-    vid_size = vid.get_meta_data()['size']
+    print("isUnity = " + str(opts.unity))
+    if opts.unity:
+        fps_in = 30
+        vid_size =[1920,1080]
+    else:
+        vid = imageio.get_reader(opts.vid_path,  'ffmpeg')
+        fps_in = vid.get_meta_data()['fps']
+        vid_size = vid.get_meta_data()['size']
+        
     os.makedirs(opts.out_path, exist_ok=True)
 
     if opts.pixel:
@@ -95,6 +100,7 @@ def parse_args():
     parser.add_argument('--focus', type=int, default=None, help='target person id')
     parser.add_argument('--clip_len', type=int, default=243, help='clip length for network input')
     parser.add_argument('--render', type=bool, default=False, help='render it')
+    parser.add_argument('--unity', type=bool, default=False, help='render it')
     opts = parser.parse_args()
     return opts
 

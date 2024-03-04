@@ -23,7 +23,7 @@ unzip  $dir_name -d ./unity_data/
 python tools/convert_unity2pkl.py ./unity_data/ ./data/motion3d/unity
 
 echo "====start result render===="
-python tools/render_infer_result.py &
+nohup python tools/render_infer_result.py &
 
 echo "====start train===="
 ./train_pose3d.sh

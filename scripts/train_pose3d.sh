@@ -35,6 +35,6 @@ nohup tensorboard --port 6007 --logdir $dir_path/logs/ &
 # view the train logs
 tail -f $nohup_train_log
 
-# ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
-# nohup tensorboard --port 6007 --logdir ./checkpoint/pose3d/ft_unity/logs/ &
+#ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
+#nohup tensorboard --port 6007 --logdir ./checkpoint/pose3d/ft_unity/logs/ &
 # tail -f ./checkpoint/pose3d/ft_unity/nohup_train.out

@@ -25,3 +25,5 @@ for dir in "${dirs[@]}"; do
   cp -rf "$WORKDIR/$dir" .
 done
 
+
+cp -rf $WORKDIR/configs/test.json ./examples/test.json 

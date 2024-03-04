@@ -22,13 +22,13 @@ def render_all_epoch():
         if(idx == max_epoch-1):
             next_path = path
         while(not os.path.exists(next_path)) :
-            print("wait " + next_path)
+            #print("wait " + next_path)
             time.sleep(10)
 
         results_all = np.load(path)
         output_path ='%s/%s.mp4' % (output_dir, str(idx))
-        print(output_path)
         render_and_save(results_all, output_path, keep_imgs=False, fps=fps_in)
+        print("render result => " + output_path)
 
 # This is how you would call the function from another script
 if __name__ == "__main__":
