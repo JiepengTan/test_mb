@@ -5,9 +5,9 @@ finetune: True
 partial_train: null
 
 # Traning 
-epochs: 60
-checkpoint_frequency: 10
-batch_size: 32 
+epochs: 180
+checkpoint_frequency: 30
+batch_size: 16 
 dropout: 0.0
 learning_rate: 0.0002
 weight_decay: 0.01
