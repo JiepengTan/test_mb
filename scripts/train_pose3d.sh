@@ -11,7 +11,7 @@ dir_path=./checkpoint/pose3d/$dir_name
 mkdir -p $dir_path
 
 
-ps -ef | grep train.py | awk '{print $2}' | xargs kill -9
+ps -ef | grep python | awk '{print $2}' | xargs kill -9
 
 nohup_train_log=$dir_path/nohup_train.out
 
@@ -31,6 +31,8 @@ echo "==============start tensorboard =================="
 ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
 nohup tensorboard --port 6007 --logdir $dir_path/logs/ &
 
+echo "====start result render===="
+nohup python tools/render_infer_result.py &
 
 # view the train logs
 tail -f $nohup_train_log
