@@ -12,10 +12,12 @@ import shutil
 from concurrent.futures import ProcessPoolExecutor
 
 def parse_unity_data(input_path, output_dir):
+    print(f"parse_unity_data + {input_path} =>{output_dir}")
     with open(input_path, 'rb') as f:
         startIdx = struct.unpack('i', f.read(4))[0]
         length = struct.unpack('i', f.read(4))[0]
         idx = startIdx
+        dot_sum = 0
         for _ in range(length):
             data_input_flat = []
             data_input_size = struct.unpack('i', f.read(4))[0]
@@ -26,11 +28,25 @@ def parse_unity_data(input_path, output_dir):
             for _ in range(data_label_size):
                 data_label_flat.append(struct.unpack('f', f.read(4))[0])
 
+            data_dirs_size = struct.unpack('i', f.read(4))[0]
+            data_dirs_flat = []
+            for _ in range(data_dirs_size):
+                data_dirs_flat.append(struct.unpack('f', f.read(4))[0])
+
             data_input = np.array(data_input_flat).reshape((243, 17, 3))
             data_label = np.array(data_label_flat).reshape((243, 17, 3))
+            data_dirs = np.array(data_dirs_flat).reshape((243, 24, 6)) # forward, up
+
+            # check if the vectors are orthogonal
+            forward_vectors = data_dirs[:, :, 0:3]
+            up_vectors = data_dirs[:, :, 3:6]
+            dot_products = np.einsum('ijk,ijk->ij', forward_vectors, up_vectors)
+            dot_sum += np.abs(np.sum(dot_products))
+
             motion_bert_clip_dict = {
                 'data_input': data_input.tolist(),
-                'data_label': data_label.tolist()
+                'data_label': data_label.tolist(),
+                'data_dirs': data_dirs.tolist()
             }
             output_path = os.path.join(output_dir, "%08d.pkl" % idx)
             with open(output_path, "wb") as myprofile:  
@@ -38,6 +54,8 @@ def parse_unity_data(input_path, output_dir):
             if(idx %100 == 0):
                 print("write file " + output_path)
             idx = idx +1
+        
+        print(f"dirs' dot.avg= {dot_sum/(243*24*length)}")
 
 def test_read(input_dir, idx):
     motion_file = read_pkl(os.path.join(input_dir, "%08d.pkl" % idx))
@@ -53,7 +71,7 @@ def move_file(input_dir, dst_dir, src_idx, dst_idx):
     src_path =os.path.join(input_dir,"" "%08d.pkl" % src_idx)
     dst_path =os.path.join(dst_dir, "%08d.pkl" % dst_idx)
     shutil.move(src_path, dst_path)
-    print(src_path + " => " + dst_path)
+    #print(src_path + " => " + dst_path)
 
 def copy_test_train_set(input_dir, output_dir,test_rate):
     total_count = len([name for name in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, name))])

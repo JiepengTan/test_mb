@@ -7,7 +7,7 @@ warmup_h36m: 100
 # Traning 
 epochs: 60
 checkpoint_frequency: 20
-batch_size: 210
+batch_size: 16
 batch_size_img: 512
 dropout: 0.1
 dropout_loc: 1
@@ -27,25 +27,33 @@ att_fuse: True
 hidden_dim: 1024
 
 # Data
-data_root: data/mesh
+data_root: data/unity/
+subset_list: [unity]
 dt_file_h36m: mesh_det_h36m.pkl
 clip_len: 16
 data_stride: 8
 sample_stride: 1
 num_joints: 17
+rootrel: True
+num_joints: 17
+no_conf: False
+gt_2d: False
 
 # Loss
 lambda_3d: 0.5
 lambda_scale: 0
-lambda_3dv: 10
+lambda_3dv: 100
 lambda_lv: 0
 lambda_lg: 0
 lambda_a: 0
 lambda_av: 0
 lambda_pose: 1000
-lambda_shape: 1
 lambda_norm: 20
 loss_type: 'L1'
 
 # Augmentation
 flip: True
+synthetic: False
+mask_ratio: 0.
+mask_T_ratio: 0.
+noise: False

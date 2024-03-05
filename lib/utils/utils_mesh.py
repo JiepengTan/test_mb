@@ -312,7 +312,6 @@ def rot6d_to_rotmat_spin(x):
     b3 = torch.cross(b1, b2)
     return torch.stack((b1, b2, b3), dim=-1)
 
-
 def rot6d_to_rotmat(x):
     x = x.view(-1,3,2)
 
@@ -372,6 +371,18 @@ def compute_error(output, target):
         target_j3ds = target_j3ds - target_j3ds[:, :1, :]
         mpjpes = torch.sqrt(((pred_j3ds - target_j3ds) ** 2).sum(dim=-1)).mean(dim=-1).cpu()
         return mpjpes.mean(), mpves.mean()
+    
+def compute_unity_error(output, target):
+    with torch.no_grad():
+
+        pred_j3ds = output[0]['kp_3d'].reshape(-1, 17, 3)
+        target_j3ds = target['kp_3d'].reshape(-1, 17, 3)
+        
+        # mpjpe
+        pred_j3ds = pred_j3ds - pred_j3ds[:, :1, :]
+        target_j3ds = target_j3ds - target_j3ds[:, :1, :]
+        mpjpes = torch.sqrt(((pred_j3ds - target_j3ds) ** 2).sum(dim=-1)).mean(dim=-1).cpu()
+        return mpjpes.mean()
     
 def compute_error_frames(output, target):
     with torch.no_grad():
@@ -437,6 +448,41 @@ def evaluate_mesh(results):
         }
     return error_dict
 
+def evaluate_unity_mesh(results):
+
+    pred_j3ds = results['kp_3d'].reshape(-1, 17, 3)
+    target_j3ds = results['kp_3d_gt'].reshape(-1, 17, 3)
+    num_samples = pred_j3ds.shape[0]
+
+    # mpjpe-17 & mpjpe-14
+    h36m_17_to_14 = (1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 15, 16)
+    pred_j3ds_17j = (pred_j3ds - pred_j3ds[:, :1, :])
+    target_j3ds_17j = (target_j3ds - target_j3ds[:, :1, :])
+
+    pred_j3ds = pred_j3ds_17j[:, h36m_17_to_14, :].copy()
+    target_j3ds = target_j3ds_17j[:, h36m_17_to_14, :].copy()
+
+    mpjpe = np.mean(np.sqrt(np.square(pred_j3ds - target_j3ds).sum(axis=2)), axis=1)  # (N, )
+    mpjpe_17j = np.mean(np.sqrt(np.square(pred_j3ds_17j - target_j3ds_17j).sum(axis=2)), axis=1)  # (N, )
+
+    pred_j3ds_pa, pred_j3ds_pa_17j = [], []
+    for n in range(num_samples):
+        pred_j3ds_pa.append(rigid_align(pred_j3ds[n], target_j3ds[n]))
+        pred_j3ds_pa_17j.append(rigid_align(pred_j3ds_17j[n], target_j3ds_17j[n]))
+    pred_j3ds_pa = np.array(pred_j3ds_pa)
+    pred_j3ds_pa_17j = np.array(pred_j3ds_pa_17j)
+
+    pa_mpjpe = np.mean(np.sqrt(np.square(pred_j3ds_pa - target_j3ds).sum(axis=2)), axis=1)  # (N, )
+    pa_mpjpe_17j = np.mean(np.sqrt(np.square(pred_j3ds_pa_17j - target_j3ds_17j).sum(axis=2)), axis=1)  # (N, )
+
+
+    error_dict = {
+        'mpjpe': mpjpe.mean(),
+        'pa_mpjpe': pa_mpjpe.mean(),
+        'mpjpe_17j': mpjpe_17j.mean(),
+        'pa_mpjpe_17j': pa_mpjpe_17j.mean(),
+        }
+    return error_dict
 
 def rectify_pose(pose):
     """
@@ -519,3 +565,11 @@ def flip_thetas_batch(thetas):
 #     rot6d = matrix_to_rotation_6d(rotmat)
 #     rot6d = rot6d.reshape(-1,24*6)
 #     return rot6d
+
+
+
+# (N*T, [forward_dir, up_dir])
+def unity_rot_to_angle_axis(pred_pose):
+    pred_rotmat = rot6d_to_rotmat(pred_pose).view(-1, 24, 3, 3)
+    pose = rotation_matrix_to_angle_axis(pred_rotmat.reshape(-1, 3, 3)).reshape(-1, 72) # (NT, 72)
+    return pose

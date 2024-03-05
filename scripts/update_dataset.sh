@@ -19,7 +19,7 @@ unzip  $dir_name -d ./unity_data/
 
 
 # 3. preprocess the unity dataset
-python tools/convert_unity2pkl.py ./unity_data/ ./data/motion3d/unity
+python tools/convert_unity2pkl.py ./unity_data/ ./data/unity/unity
 
 if [ $is_need_train -eq 1 ]; then
     ./train_pose3d.sh
