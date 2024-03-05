@@ -25,7 +25,7 @@ class MotionDataset(Dataset):
             motion_list = sorted(os.listdir(data_path))
             for i in motion_list:
                 file_list_all.append(os.path.join(data_path, i))
-        self.file_list = file_list_allUnityDataset3D
+        self.file_list = file_list_all
         
     def __len__(self):
         'Denotes the total number of samples'
