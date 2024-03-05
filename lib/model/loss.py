@@ -205,3 +205,12 @@ def loss_angle_velocity(x, gt):
     gt_av = gt_a[:,1:] - gt_a[:,:-1]
     return nn.L1Loss()(x_av, gt_av)
 
+
+def loss_angle_velocity_unity(pred_dir_nrom, real_dir):
+    """
+    Mean per-angle velocity error (i.e. mean Euclidean distance of the 1st derivative)
+    """
+    assert x_a.shape == gt_a.shape # N;T;
+    x_av = pred_dir_nrom[:,1:,24,3] - pred_dir_nrom[:,:-1,24,3]
+    gt_av = real_dir[:,1:,24,3] - real_dir[:,:-1,24,3]
+    return nn.L1Loss()(x_av, gt_av)

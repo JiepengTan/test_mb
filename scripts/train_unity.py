@@ -53,13 +53,9 @@ def validate(test_loader, model, criterion, dataset_name='unity'):
     batch_time = AverageMeter()
     losses = AverageMeter()
     losses_dict = {'loss_3d_pos': AverageMeter(), 
-                   'loss_3d_scale': AverageMeter(), 
-                   'loss_3d_velocity': AverageMeter(),
-                   'loss_lv': AverageMeter(), 
-                   'loss_lg': AverageMeter(), 
                    'loss_a': AverageMeter(), 
+                   'loss_a_up': AverageMeter(), 
                    'loss_av': AverageMeter(), 
-                   'loss_pose': AverageMeter(), 
                    'loss_norm': AverageMeter(),
     }
     mpjpes = AverageMeter()
@@ -71,33 +67,26 @@ def validate(test_loader, model, criterion, dataset_name='unity'):
             if torch.cuda.is_available():
                 batch_gt['theta'] = batch_gt['theta'].cuda().float()
                 batch_gt['kp_3d'] = batch_gt['kp_3d'].cuda().float()
+                batch_gt['dir_fu'] = batch_gt['dir_fu'].cuda().float()
                 batch_input = batch_input.cuda().float()
             output = model(batch_input)    
             loss_dict = criterion(output, batch_gt)
             loss = args.lambda_3d      * loss_dict['loss_3d_pos']      + \
-                   args.lambda_scale   * loss_dict['loss_3d_scale']    + \
-                   args.lambda_3dv     * loss_dict['loss_3d_velocity'] + \
-                   args.lambda_lv      * loss_dict['loss_lv']          + \
-                   args.lambda_lg      * loss_dict['loss_lg']          + \
                    args.lambda_a       * loss_dict['loss_a']           + \
+                   args.lambda_a_up    * loss_dict['loss_a_up']        + \
                    args.lambda_av      * loss_dict['loss_av']          + \
-                   args.lambda_pose    * loss_dict['loss_pose']        + \
                    args.lambda_norm    * loss_dict['loss_norm'] 
+
             # update metric
             losses.update(loss.item(), batch_size)
             loss_str = ''
             for k, v in loss_dict.items():
                 losses_dict[k].update(v.item(), batch_size)
                 loss_str += '{0} {loss.val:.3f} ({loss.avg:.3f})\t'.format(k, loss=losses_dict[k])
-            mpjpe = compute_unity_error(output, batch_gt)
-            mpjpes.update(mpjpe, batch_size)
-            
+
             for keys in output[0].keys():
                 output[0][keys] = output[0][keys].detach().cpu().numpy()
                 batch_gt[keys] = batch_gt[keys].detach().cpu().numpy()
-            results['kp_3d'].append(output[0]['kp_3d'])
-            results['kp_3d_gt'].append(batch_gt['kp_3d'])
-
             # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
@@ -105,18 +94,11 @@ def validate(test_loader, model, criterion, dataset_name='unity'):
             if idx % int(opts.print_freq) == 0:
                 print('Test: [{0}/{1}]\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'JPE {mpjpes.val:.3f} ({mpjpes.avg:.3f})'.format(
-                       idx, len(test_loader), loss_str, batch_time=batch_time,
-                       loss=losses,  mpjpes=mpjpes))
+                      ''.format(
+                       idx, len(test_loader), loss_str, batch_time=batch_time,loss=losses))
 
-    for term in results.keys():
-        results[term] = np.concatenate(results[term])
-    error_dict = evaluate_unity_mesh(results)
-    err_str = ''
-    for err_key, err_val in error_dict.items():
-        err_str += '{}: {:.2f}mm \t'.format(err_key, err_val)
     print(f'=======================> {dataset_name} validation done: ', loss_str)
-    return losses.avg, error_dict['mpjpe'], error_dict['pa_mpjpe'], losses_dict
+    return losses.avg,losses_dict
 
 
 def train_epoch(args, opts, model, train_loader, losses_train, losses_dict, mpjpes, criterion, optimizer, batch_time, data_time, epoch):
@@ -129,30 +111,24 @@ def train_epoch(args, opts, model, train_loader, losses_train, losses_dict, mpjp
         if torch.cuda.is_available():
             batch_gt['theta'] = batch_gt['theta'].cuda().float()
             batch_gt['kp_3d'] = batch_gt['kp_3d'].cuda().float()
+            batch_gt['dir_fu'] = batch_gt['dir_fu'].cuda().float()
             batch_input = batch_input.cuda().float()
         output = model(batch_input)
         optimizer.zero_grad()
         loss_dict = criterion(output, batch_gt)
-        loss_train = args.lambda_3d      * loss_dict['loss_3d_pos']      + \
-                     args.lambda_scale   * loss_dict['loss_3d_scale']    + \
-                     args.lambda_3dv     * loss_dict['loss_3d_velocity'] + \
-                     args.lambda_lv      * loss_dict['loss_lv']          + \
-                     args.lambda_lg      * loss_dict['loss_lg']          + \
-                     args.lambda_a       * loss_dict['loss_a']           + \
-                     args.lambda_av      * loss_dict['loss_av']          + \
-                     args.lambda_pose    * loss_dict['loss_pose']        + \
-                     args.lambda_norm    * loss_dict['loss_norm'] 
+        loss = args.lambda_3d       * loss_dict['loss_3d_pos']      + \
+                args.lambda_a       * loss_dict['loss_a']           + \
+                args.lambda_a_up    * loss_dict['loss_a_up']        + \
+                args.lambda_av      * loss_dict['loss_av']          + \
+                args.lambda_norm    * loss_dict['loss_norm'] 
         
-        losses_train.update(loss_train.item(), batch_size)
+        losses_train.update(loss.item(), batch_size)
         loss_str = ''
         for k, v in loss_dict.items():
             losses_dict[k].update(v.item(), batch_size)
             loss_str += '{0} {loss.val:.3f} ({loss.avg:.3f})\t'.format(k, loss=losses_dict[k])
         
-        mpjpe = compute_unity_error(output, batch_gt)
-        mpjpes.update(mpjpe, batch_size)
-        
-        loss_train.backward()
+        loss.backward()
         optimizer.step()
 
         batch_time.update(time.time() - end)
@@ -161,8 +137,8 @@ def train_epoch(args, opts, model, train_loader, losses_train, losses_dict, mpjp
         if idx % int(opts.print_freq) == 0:
             print('Train: [{0}][{1}/{2}]\t'
                 'loss {loss.val:.3f} ({loss.avg:.3f})\t'
-                'JPE {mpjpes.val:.3f} ({mpjpes.avg:.3f})'.format(
-                epoch, idx + 1, len(train_loader), loss_str, loss=losses_train,  mpjpes=mpjpes))
+                ''.format(
+                epoch, idx + 1, len(train_loader), loss_str, loss=losses_train))
             sys.stdout.flush()
 
 def save_checkpoint(chk_path, epoch, lr, optimizer, model, best_jpe):
@@ -244,7 +220,7 @@ def train_with_config(args, opts):
         checkpoint = torch.load(chk_filename, map_location=lambda storage, loc: storage)
         model.load_state_dict(checkpoint['model'], strict=True)
     if opts.evaluate:
-        test_loss, test_mpjpe, test_pa_mpjpe, _ = validate(test_loader, model, criterion, 'unity')
+        print("no implement!!")
     else: 
         optimizer = optim.AdamW(
                 [     {"params": filter(lambda p: p.requires_grad, model.module.backbone.parameters()), "lr": args.lr_backbone},
@@ -270,13 +246,9 @@ def train_with_config(args, opts):
             losses_train = AverageMeter()
             losses_dict = {
                 'loss_3d_pos': AverageMeter(), 
-                'loss_3d_scale': AverageMeter(), 
-                'loss_3d_velocity': AverageMeter(),
-                'loss_lv': AverageMeter(), 
-                'loss_lg': AverageMeter(), 
                 'loss_a': AverageMeter(), 
+                'loss_a_up': AverageMeter(), 
                 'loss_av': AverageMeter(), 
-                'loss_pose': AverageMeter(), 
                 'loss_norm': AverageMeter(),
             }
             mpjpes = AverageMeter()
@@ -284,22 +256,22 @@ def train_with_config(args, opts):
             data_time = AverageMeter()
             
             train_epoch(args, opts, model, train_loader, losses_train, losses_dict, mpjpes, criterion, optimizer, batch_time, data_time, epoch)
-            test_loss, test_mpjpe, test_pa_mpjpe, test_losses_dict = validate(test_loader, model, criterion, 'unity')
+            test_loss, test_losses_dict = validate(test_loader, model, criterion, 'unity')
 
-            train_writer.add_scalar('test_loss_unity', test_loss, epoch + 1)
-            train_writer.add_scalar('test_mpjpe_unity', test_mpjpe, epoch + 1)
-            train_writer.add_scalar('test_pa_mpjpe_unity', test_pa_mpjpe, epoch + 1)
+            train_writer.add_scalar('test_loss', test_loss, epoch + 1)
             for k, v in test_losses_dict.items():
-                train_writer.add_scalar('test_loss_d_unity/'+k, v.avg, epoch + 1)
+                train_writer.add_scalar('test_loss/'+k, v.avg, epoch + 1)
 
             
             train_writer.add_scalar('train_loss', losses_train.avg, epoch + 1)
-            train_writer.add_scalar('train_mpjpe', mpjpes.avg, epoch + 1)
             for k, v in losses_dict.items():
-                train_writer.add_scalar('train_d_loss/'+k, v.avg, epoch + 1)
+                train_writer.add_scalar('train_loss/'+k, v.avg, epoch + 1)
                 
             # Decay learning rate exponentially
             scheduler.step()
+
+            test_mpjpe = test_losses_dict['loss_a'].avg # TODO
+            #print(f"test_mpjpe ==  {test_mpjpe}")
 
             lr = scheduler.get_last_lr()
             best_jpe_cur = test_mpjpe

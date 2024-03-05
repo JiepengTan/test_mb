@@ -29,7 +29,7 @@ class MotionDataset(Dataset):
         
     def __len__(self):
         'Denotes the total number of samples'
-        return len(self.file_list)
+        return 20
 
     def __getitem__(self, index):
         raise NotImplementedError 
@@ -60,13 +60,13 @@ class UnityDataset3D(MotionDataset):
 
         # motion_3d24 = motion_file["data_kp3d"]  
         # motion_3d24 = torch.FloatTensor(motion_3d24)
-        dir_fu = torch.FloatTensor([])
+        dir_fu = bone_forward_up_dir  # [243, 24, 6]
 
         # convert unity forward_dir and up_dir to angle_axis
         motion_smpl_3d = {
             'theta': motion_theta,       # bone rotation forward up
             'kp_3d': motion_3d17,       # 3D mesh vertices
-            'dir_fu':dir_fu
+            'dir_fu':dir_fu,            # bone rotation forward up
             # 'kp_3d24': motion_3d24,        # 3D keypoints 24
         }
         return motion_2d, motion_smpl_3d

@@ -7,7 +7,7 @@ warmup_h36m: 100
 # Traning 
 epochs: 60
 checkpoint_frequency: 20
-batch_size: 16
+batch_size: 2
 batch_size_img: 512
 dropout: 0.1
 dropout_loc: 1
@@ -41,15 +41,13 @@ gt_2d: False
 
 # Loss
 lambda_3d: 0.5
-lambda_scale: 0
-lambda_3dv: 100
-lambda_lv: 0
-lambda_lg: 0
-lambda_a: 0
+lambda_a: 5.0
+lambda_a_up: 1.0
 lambda_av: 0
-lambda_pose: 1000
-lambda_norm: 20
+lambda_norm: 1
 loss_type: 'L1'
+
+
 
 # Augmentation
 flip: True

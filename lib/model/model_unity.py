@@ -11,7 +11,6 @@ class MeshRegressor(nn.Module):
         super(MeshRegressor, self).__init__()
         param_pose_dim = 24 * 6
         self.head_kp_3d = nn.Linear(dim_rep, 3) 
-
         self.dropout = nn.Dropout(p=dropout_ratio)
         self.fc1 = nn.Linear(num_joints*dim_rep, hidden_dim)
         self.pool2 = nn.AdaptiveAvgPool2d((None, 1))
@@ -22,6 +21,7 @@ class MeshRegressor(nn.Module):
         self.relu2 = nn.ReLU(inplace=True)
         self.head_pose = nn.Linear(hidden_dim, param_pose_dim)
         nn.init.xavier_uniform_(self.head_pose.weight, gain=0.01)
+        nn.init.xavier_uniform_(self.head_kp_3d.weight, gain=0.01)
 
     def forward(self, feat, init_pose=None, init_shape=None):
         N, T, J, C = feat.shape    # C == arg.dim_rep
@@ -46,7 +46,6 @@ class MeshRegressor(nn.Module):
             'kp_3d'  : kp_3d,                       # (N*T, J, 3)
             'theta'  : torch.cat([pose], dim=1),    # (N*T, 72)
             'dir_fu' : pred_pose,                   # (N*T, 24*6) #target dirs forward ,up
-
         }]
         return output
     
