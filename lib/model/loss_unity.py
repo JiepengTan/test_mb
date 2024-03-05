@@ -50,7 +50,7 @@ class UnityLoss(nn.Module):
         
         if pred_theta.shape[0] > 0:
             loss_pose = self.matrix_losses(pred_pose,  real_pose)
-            loss_norm = torch.norm(pred_theta, dim=-1).mean()
+            loss_norm = torch.norm(pred_theta, dim=-1).mean() # encouraging not be too large, prevent overfitting 
             loss_dict['loss_pose'] = loss_pose 
             loss_dict['loss_norm'] = loss_norm 
         return loss_dict

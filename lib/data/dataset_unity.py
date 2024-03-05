@@ -25,7 +25,7 @@ class MotionDataset(Dataset):
             motion_list = sorted(os.listdir(data_path))
             for i in motion_list:
                 file_list_all.append(os.path.join(data_path, i))
-        self.file_list = file_list_all
+        self.file_list = file_list_allUnityDataset3D
         
     def __len__(self):
         'Denotes the total number of samples'
@@ -65,6 +65,7 @@ class UnityDataset3D(MotionDataset):
         motion_smpl_3d = {
             'theta': motion_theta,       # bone rotation forward up
             'kp_3d': motion_3d17,       # 3D mesh vertices
+            'dir_fu':[]
             # 'kp_3d24': motion_3d24,        # 3D keypoints 24
         }
         return motion_2d, motion_smpl_3d
