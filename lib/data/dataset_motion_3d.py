@@ -10,7 +10,7 @@ from lib.data.augmentation import Augmenter3D
 from lib.utils.tools import read_pkl
 from lib.utils.utils_data import flip_data
     
-class MotionDataset36(Dataset):
+class MotionDataset(Dataset):
     def __init__(self, args, subset_list, data_split): # data_split: train/test
         np.random.seed(0)
         self.data_root = args.data_root
@@ -32,9 +32,9 @@ class MotionDataset36(Dataset):
         raise NotImplementedError 
 
 # if gt_2d == true , then just project the 3d pose to 2D (set pos.z = 1)
-class MotionDataset3D36(MotionDataset36):
+class MotionDataset3D(MotionDataset):
     def __init__(self, args, subset_list, data_split):
-        super(MotionDataset3D36, self).__init__(args, subset_list, data_split)
+        super(MotionDataset3D, self).__init__(args, subset_list, data_split)
         self.flip = args.flip
         self.synthetic = args.synthetic
         self.aug = Augmenter3D(args)
