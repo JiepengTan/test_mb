@@ -5,13 +5,13 @@ finetune: True
 partial_train: null
 
 # Traning 
-epochs: 180
+epochs: 30
 checkpoint_frequency: 30
 batch_size: 16 
 dropout: 0.0
-learning_rate: 0.0002
+learning_rate: 0.0003
 weight_decay: 0.01
-lr_decay: 0.99
+lr_decay: 0.993
 
 # Model
 maxlen: 243
@@ -28,7 +28,7 @@ subset_list: [unity]
 dt_file: h36m_sh_conf_cam_source_final.pkl
 clip_len: 243
 data_stride: 81
-rootrel: False
+rootrel: True
 sample_stride: 1
 num_joints: 17
 no_conf: False

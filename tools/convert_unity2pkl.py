@@ -9,6 +9,8 @@ sys.path.insert(0, os.getcwd())
 from lib.utils.tools import read_pkl
 import shutil
 
+from concurrent.futures import ProcessPoolExecutor
+
 def parse_unity_data(input_path, output_dir):
     with open(input_path, 'rb') as f:
         startIdx = struct.unpack('i', f.read(4))[0]
@@ -79,17 +81,24 @@ def copy_test_train_set(input_dir, output_dir,test_rate):
         else :
             move_file(input_dir,train_dir,idx,train_idx) 
             train_idx +=1
-        
+
+
+
+def worker(file_name, data_path, output_dir):
+    parse_unity_data(os.path.join(data_path, file_name), output_dir)
 
 def convert_all(root_path, output_dir):
-    os.makedirs(output_dir)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     data_path = root_path
     motion_list = sorted(os.listdir(data_path))
     print("total count " + str(len(motion_list) * 1000))
-    idx = 0
-    for flie_name in motion_list:
-        idx += 1
-        parse_unity_data(os.path.join(data_path,flie_name),output_dir)
+
+    # Use a process pool to execute parse_unity_data in parallel
+    with ProcessPoolExecutor() as executor:
+        for file_name in motion_list:
+            executor.submit(worker, file_name, data_path, output_dir)
+
 
 
 input_dir = "../../MotionGen/Unity/Output/MotionBERT/Anim/"

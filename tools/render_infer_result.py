@@ -8,7 +8,7 @@ sys.path.insert(0, os.getcwd())
 from lib.utils.vismo import render_and_save
 
 fps_in = 30
-max_epoch = 60
+max_epoch = 29
 def render_all_epoch():
     input_dir  = "./examples/train_result"
     output_dir = input_dir

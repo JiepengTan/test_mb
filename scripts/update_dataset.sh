@@ -1,9 +1,11 @@
 #!/bin/bash
 
-dir_name=../unity_anim_1.0.zip
+is_need_train=1
 if [ $# -ge 1 ]; then
-    dir_name=$1
+    is_need_train=0
 fi
+
+dir_name=../unity_anim_1.0.zip
 
 if [ !  -f $dir_name ]; then
     echo "The file $dir_name not exist."
@@ -19,9 +21,9 @@ unzip  $dir_name -d ./unity_data/
 # 3. preprocess the unity dataset
 python tools/convert_unity2pkl.py ./unity_data/ ./data/motion3d/unity
 
-
-echo "====start train===="
-./train_pose3d.sh
+if [ $is_need_train -eq 1 ]; then
+    ./train_pose3d.sh
+fi
 
 
 #python tools/convert_unity2pkl.py ./../../MotionGen/Unity/Output/MotionBERT/Anim/ ./data/motion3d/unity
