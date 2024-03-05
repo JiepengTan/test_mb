@@ -29,7 +29,7 @@ class MotionDataset(Dataset):
         
     def __len__(self):
         'Denotes the total number of samples'
-        return 20
+        return len(self.file_list)
 
     def __getitem__(self, index):
         raise NotImplementedError 
