@@ -26,8 +26,8 @@ from lib.utils.utils_mesh import *
 from lib.utils.utils_smpl import *
 from lib.utils.utils_data import *
 from lib.utils.learning import *
-from lib.data.dataset_mesh import MotionSMPL
-from lib.model.model_mesh import MeshRegressor
+from lib.data.dataset_unity import MotionSMPL
+from lib.model.model_unity import MeshRegressor
 from torch.utils.data import DataLoader
 
 def parse_args():

@@ -3,12 +3,12 @@
 pip install pyyaml
 pip install numpy==1.23.0
 
-dir_name=ft_unity_rot
+dir_name=ft_unity
 if [ $# -ge 1 ]; then
     dir_name=$1
 fi
 
-dir_path=./checkpoint/ft_unity_rot/$dir_name
+dir_path=./checkpoint/unity/$dir_name
 rm -rf $dir_path
 mkdir -p $dir_path
 
@@ -24,7 +24,7 @@ fi
 # start train task
 echo "==============start train $dir_path =================="
 
-nohup python train_unity.py --config configs/unity/ft_unity.yaml --pretrained checkpoint/pretrain/MB_release --checkpoint checkpoint/mesh/${dir_name} > ${nohup_train_log}  2>&1 &
+nohup python train_unity.py --config configs/unity/ft_unity_rot.yaml --pretrained checkpoint/pretrain/MB_release --checkpoint checkpoint/unity/${dir_name} > ${nohup_train_log}  2>&1 &
 
 
 echo "==============start tensorboard =================="
