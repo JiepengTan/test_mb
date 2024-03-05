@@ -7,7 +7,7 @@ warmup_h36m: 100
 # Traning 
 epochs: 60
 checkpoint_frequency: 20
-batch_size: 194
+batch_size: 210
 batch_size_img: 512
 dropout: 0.1
 dropout_loc: 1
