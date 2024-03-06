@@ -12,17 +12,19 @@ import shutil
 from concurrent.futures import ProcessPoolExecutor
 
 def parse_unity_data(input_path, output_dir):
-    print(f"parse_unity_data + {input_path} =>{output_dir}")
     with open(input_path, 'rb') as f:
         startIdx = struct.unpack('i', f.read(4))[0]
         length = struct.unpack('i', f.read(4))[0]
         idx = startIdx
         dot_sum = 0
+        len_sum = 0
+        print(f"parse_unity_data + {input_path} =>{output_dir} startIdx = {startIdx} len = {length}")
         for _ in range(length):
             data_input_flat = []
             data_input_size = struct.unpack('i', f.read(4))[0]
             for _ in range(data_input_size):
                 data_input_flat.append(struct.unpack('f', f.read(4))[0])
+
             data_label_size = struct.unpack('i', f.read(4))[0]
             data_label_flat = []
             for _ in range(data_label_size):
@@ -38,10 +40,20 @@ def parse_unity_data(input_path, output_dir):
             data_dirs = np.array(data_dirs_flat).reshape((243, 24, 6)) # forward, up
 
             # check if the vectors are orthogonal
-            forward_vectors = data_dirs[:, :, 0:3]
-            up_vectors = data_dirs[:, :, 3:6]
-            dot_products = np.einsum('ijk,ijk->ij', forward_vectors, up_vectors)
-            dot_sum += np.abs(np.sum(dot_products))
+            forward_vectors = data_dirs[:, :, 0:3].reshape(-1, 3)  # Reshape to [243*24, 3]
+            up_vectors = data_dirs[:, :, 3:6].reshape(-1, 3)      # Reshape to [243*24, 3]
+
+            # Calculate dot products and sum their absolute values
+            dot_products = np.sum(forward_vectors * up_vectors, axis=1)  # Element-wise multiplication and sum over the last dimension
+            
+
+            sum_abs = np.sum(np.abs(dot_products))  # Sum of absolute values
+            dot_sum += sum_abs
+
+            lens = np.sum(forward_vectors * forward_vectors, axis=1) 
+            len_sum += np.sum(lens)
+            lens = np.sum(up_vectors * up_vectors, axis=1) 
+            len_sum += np.sum(lens)
 
             motion_bert_clip_dict = {
                 'data_input': data_input.tolist(),
@@ -55,7 +67,7 @@ def parse_unity_data(input_path, output_dir):
                 print("write file " + output_path)
             idx = idx +1
         
-        print(f"dirs' dot.avg= {dot_sum/(243*24*length)}")
+        print(f"dirs' dot.avg= {dot_sum/(243*24*length)} len.avg = {len_sum/(243*24*length) /2} ")
 
 def test_read(input_dir, idx):
     motion_file = read_pkl(os.path.join(input_dir, "%08d.pkl" % idx))
@@ -116,6 +128,7 @@ def convert_all(root_path, output_dir):
     with ProcessPoolExecutor() as executor:
         for file_name in motion_list:
             executor.submit(worker, file_name, data_path, output_dir)
+            
 
 
 

@@ -46,8 +46,8 @@ class UnityLoss(nn.Module):
 
         # Calculate the dot products for forward and up vectors
         loss_dict = {}
-        loss_dict['loss_a'] = torch.abs((pred_forward_norm * real_forward).sum(dim=1)).mean()
-        loss_dict['loss_a_up'] = torch.abs((pred_up_norm * real_up).sum(dim=1)).mean()
+        loss_dict['loss_a'] = torch.abs((pred_forward_norm * real_forward).sum(dim=1)*1000).mean()
+        loss_dict['loss_a_up'] = torch.abs((pred_up_norm * real_up).sum(dim=1)*1000).mean()
         loss_dict['loss_norm'] = torch.abs(len_f - 1).mean() + torch.abs(len_u - 1).mean()
 
         # TODO: Implement loss_3d_pos and loss_av calculations
