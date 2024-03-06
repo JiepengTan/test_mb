@@ -43,7 +43,7 @@ gt_2d: False
 lambda_3d: 0.0
 lambda_a: 50.0
 lambda_a_up: 30.0
-lambda_av: 0
+lambda_av: 10
 lambda_norm: 1.0
 loss_type: 'L1'
 

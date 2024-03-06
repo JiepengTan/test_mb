@@ -31,28 +31,35 @@ class UnityLoss(nn.Module):
         #  theta  (N, T, 24*6)
         #  kp_3d (N, T, 17, 3)
         #  dir_fu# (N, T, 24*6)
-        preds = unity_output[-1]
-        pred_dirs = preds['dir_fu'].reshape(-1, 6)
-        real_dirs = data_gt['dir_fu'].reshape(-1, 6)
+        real_dir_fu = data_gt['dir_fu']
+        preds_dir_fu = unity_output[-1]['dir_fu']
+        N, T , J = real_dir_fu.shape[0], real_dir_fu.shape[1], real_dir_fu.shape[2]
 
-        pred_forward, pred_up = pred_dirs[:, :3], pred_dirs[:, 3:]
-        real_forward, real_up = real_dirs[:, :3], real_dirs[:, 3:]
+        pred_dirs = preds_dir_fu.reshape(-1, 6)
+        real_dirs = real_dir_fu.reshape(-1, 6)
 
-        len_f = torch.norm(pred_forward, dim=-1, keepdim=True)
-        len_u = torch.norm(pred_up, dim=-1, keepdim=True)
+        pred_f, pred_u = pred_dirs[:, :3], pred_dirs[:, 3:]
+        real_f, real_u = real_dirs[:, :3], real_dirs[:, 3:]
 
-        pred_forward_norm = pred_forward / len_f
-        pred_up_norm = pred_up / len_u
+        len_f = torch.norm(pred_f, dim=-1, keepdim=True)
+        len_u = torch.norm(pred_u, dim=-1, keepdim=True)
+
+        pred_f = pred_f / len_f
+        pred_u = pred_u / len_u
 
         # Calculate the dot products for forward and up vectors
         loss_dict = {}
-        loss_dict['loss_a'] = torch.abs((pred_forward_norm * real_forward).sum(dim=1) -1).mean()
-        loss_dict['loss_a_up'] = torch.abs((pred_up_norm * real_up).sum(dim=1) -1).mean()
+        loss_dict['loss_a'] = torch.abs((pred_f * real_f).sum(dim=1) -1).mean()
+        loss_dict['loss_a_up'] = torch.abs((pred_u * real_u).sum(dim=1) -1).mean()
         loss_dict['loss_norm'] = torch.abs(len_f - 1).mean() + torch.abs(len_u - 1).mean()
 
-        # TODO: Implement loss_3d_pos and loss_av calculations
+        pred_dir_f = pred_f.reshape(N,T,J,3)
+        real_dir_f = real_f.reshape(N,T,J,3)
+        loss_dict['loss_av'] = loss_angle_velocity_unity(pred_dir_f,real_dir_f)
+
+        #print(loss_dict['loss_av'])
+        # TODO: Implement loss_3d_pos calculations
         loss_dict['loss_3d_pos'] = torch.tensor(0, device=self.device, dtype=torch.float32)
-        loss_dict['loss_av'] = torch.tensor(0, device=self.device, dtype=torch.float32)
         
         return loss_dict
         
