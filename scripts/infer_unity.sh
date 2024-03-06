@@ -15,3 +15,7 @@ mkdir -p $dst_dir
 dst_path=$dst_dir/$epoch.npy
 mv ./examples/output/X3D.npy $dst_path
 echo save to  $dst_path
+
+dst_path=$dst_dir/$epoch.json
+mv ./examples/output/X3D.json $dst_path
+echo save to  $dst_path
