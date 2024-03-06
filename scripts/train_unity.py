@@ -8,6 +8,7 @@ import argparse
 import errno
 import subprocess
 import math
+import json
 import numpy as np
 from collections import defaultdict, OrderedDict
 import tensorboardX
@@ -29,6 +30,7 @@ from lib.utils.utils_data import *
 from lib.utils.learning import *
 from lib.data.dataset_unity import UnityDataset3D
 from lib.model.model_unity import UnityRegressor
+from lib.data.dataset_wild import WildDetDataset
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -41,7 +43,11 @@ def parse_args():
     parser.add_argument('-ms', '--selection', default='latest_epoch.bin', type=str, metavar='FILENAME', help='checkpoint to finetune (file name)')
     parser.add_argument('-sd', '--seed', default=0, type=int, help='random seed')
     parser.add_argument('--epoch_script', type=str, default="infer_unity.sh",  help='execute after echo epoch ')
-    parser.add_argument('--debug', type=int, default=0,  help='is debug mode ')
+    parser.add_argument('--debug', type=int, default=0,  help='is debug mode ') 
+
+    parser.add_argument('--json_path', type=str, default="examples/test.json", help='alphapose detection result json path')
+    parser.add_argument('--out_path',  type=str, default="examples/train_result", help='output path')
+    parser.add_argument('--clip_len',  type=int, default=243, help='clip length for network input')
     opts = parser.parse_args()
     return opts
 
@@ -50,7 +56,40 @@ def set_random_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-def validate(test_loader, model, criterion, dataset_name='unity'):
+def run_estimation(model,epoch):
+    testloader_params = {
+            'batch_size': 1,
+            'shuffle': False,
+            'num_workers': 8,
+            'pin_memory': True,
+            'prefetch_factor': 4,
+            'persistent_workers': True,
+            'drop_last': False
+    }
+
+    fps_in = 60
+    vid_size =[1920,1080]
+    os.makedirs(opts.out_path, exist_ok=True)
+    wild_dataset = WildDetDataset(opts.json_path, clip_len=opts.clip_len, vid_size=vid_size, scale_range=None, focus=opts.focus)
+    test_loader = DataLoader(wild_dataset, **testloader_params)
+
+    results_all = []
+    with torch.no_grad():
+        for batch_input in tqdm(test_loader):
+            batch_size, clip_len = batch_input.shape[:2]
+            if torch.cuda.is_available():
+                batch_input = batch_input.cuda().float()
+      
+            preds = model(batch_input)[-1]
+            pred_dirs = preds['dir_fu'].reshape(-1, 6)
+            results_all.append(pred_dirs.cpu().numpy())
+
+    results_all = np.concatenate(results_all)
+    with open('%s/%d.json' % (opts.out_path, epoch), 'w') as f:
+        json.dump(results_all.flatten().tolist(), f)
+
+
+def validate(test_loader, model, criterion, dataset_name,epoch):
     model.eval()
     print(f'===========> validating {dataset_name}')
     batch_time = AverageMeter()
@@ -63,6 +102,12 @@ def validate(test_loader, model, criterion, dataset_name='unity'):
     }
     mpjpes = AverageMeter()
     results = defaultdict(list)
+    batch_count = len(test_loader)
+
+    last_pred = []
+    last_real = []
+
+
     with torch.no_grad():
         end = time.time()
         for idx, (batch_input, batch_gt) in tqdm(enumerate(test_loader)):
@@ -94,6 +139,9 @@ def validate(test_loader, model, criterion, dataset_name='unity'):
             batch_time.update(time.time() - end)
             end = time.time()
 
+            last_pred = output[0]["dir_fu"]
+            last_real = batch_gt["dir_fu"]
+
             if idx % int(opts.print_freq) == 0:
                 print('Test: [{0}/{1}]\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
@@ -101,6 +149,15 @@ def validate(test_loader, model, criterion, dataset_name='unity'):
                        idx, len(test_loader), loss_str, batch_time=batch_time,loss=losses))
 
     print(f'=======================> {dataset_name} validation done: ', loss_str)
+
+    last_pred = last_pred.reshape(-1,243,24,6)[-1]
+    last_real = last_real.reshape(-1,243,24,6)[-1]
+    print(f"last_pred.shape {last_pred.shape}")
+    with open('%s/%d_pred.json' % (opts.out_path, epoch), 'w') as f:
+        json.dump(last_pred.flatten().tolist(), f)
+    with open('%s/%d_real.json' % (opts.out_path, epoch), 'w') as f:
+        json.dump(last_real.flatten().tolist(), f)
+
     return losses.avg,losses_dict
 
 
@@ -263,7 +320,7 @@ def train_with_config(args, opts):
             data_time = AverageMeter()
             
             train_epoch(args, opts, model, train_loader, losses_train, losses_dict, mpjpes, criterion, optimizer, batch_time, data_time, epoch)
-            test_loss, test_losses_dict = validate(test_loader, model, criterion, 'unity')
+            test_loss, test_losses_dict = validate(test_loader, model, criterion, 'unity',epoch)
 
             train_writer.add_scalar('test_loss', test_loss, epoch + 1)
             for k, v in test_losses_dict.items():

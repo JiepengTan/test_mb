@@ -73,7 +73,6 @@ def run_3d_pose_estimation(opts):
     if opts.render : 
         render_and_save(results_all, '%s/X3D.mp4' % (opts.out_path), keep_imgs=False, fps=fps_in)
     np.save('%s/X3D.npy' % (opts.out_path), results_all)
-    print("asdsdf")
     with open('%s/X3D.json' % (opts.out_path), 'w') as f:
         json.dump(results_all.flatten().tolist(), f)
 
