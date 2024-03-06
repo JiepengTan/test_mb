@@ -38,8 +38,8 @@ class UnityLoss(nn.Module):
         pred_forward, pred_up = pred_dirs[:, :3], pred_dirs[:, 3:]
         real_forward, real_up = real_dirs[:, :3], real_dirs[:, 3:]
 
-        len_f = torch.norm(real_forward, dim=-1, keepdim=True)
-        len_u = torch.norm(real_up, dim=-1, keepdim=True)
+        len_f = torch.norm(pred_forward, dim=-1, keepdim=True)
+        len_u = torch.norm(pred_up, dim=-1, keepdim=True)
 
         pred_forward_norm = pred_forward / len_f
         pred_up_norm = pred_up / len_u

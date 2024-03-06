@@ -5,8 +5,8 @@ train_pw3d: False
 warmup_h36m: 100
 
 # Traning 
-epochs: 60
-checkpoint_frequency: 20
+epochs: 120
+checkpoint_frequency: 30
 batch_size: 16
 batch_size_img: 512
 dropout: 0.1
@@ -14,7 +14,7 @@ dropout_loc: 1
 lr_backbone: 0.00005
 lr_head: 0.0005
 weight_decay: 0.01
-lr_decay: 0.98
+lr_decay: 0.99
 
 # Model
 maxlen: 243
