@@ -50,7 +50,7 @@ loss_type: 'L1'
 
 
 # Augmentation
-flip: True
+flip: False
 synthetic: False
 mask_ratio: 0.
 mask_T_ratio: 0.

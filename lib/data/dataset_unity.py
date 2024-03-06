@@ -14,7 +14,7 @@ from lib.utils.utils_mesh import unity_rot_to_angle_axis
 
 
 class MotionDataset(Dataset):
-    def __init__(self, args, subset_list, data_split): # data_split: train/test
+    def __init__(self, args, subset_list, data_split, is_debug): # data_split: train/test
         np.random.seed(0)
         self.data_root = args.data_root
         self.subset_list = subset_list
@@ -26,9 +26,12 @@ class MotionDataset(Dataset):
             for i in motion_list:
                 file_list_all.append(os.path.join(data_path, i))
         self.file_list = file_list_all
+        self.is_debug = is_debug
         
     def __len__(self):
         'Denotes the total number of samples'
+        if self.is_debug : 
+            return min(len(self.file_list),30)
         return len(self.file_list)
 
     def __getitem__(self, index):
@@ -36,8 +39,8 @@ class MotionDataset(Dataset):
 
 # if gt_2d == true , then just project the 3d pose to 2D (set pos.z = 1)
 class UnityDataset3D(MotionDataset):
-    def __init__(self, args, subset_list, data_split):
-        super(UnityDataset3D, self).__init__(args, subset_list, data_split)
+    def __init__(self, args, subset_list, data_split, is_debug = False):
+        super(UnityDataset3D, self).__init__(args, subset_list, data_split,is_debug)
         self.flip = args.flip
         self.synthetic = args.synthetic
         self.aug = Augmenter3D(args)

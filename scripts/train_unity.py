@@ -6,6 +6,7 @@ import sys
 import shutil
 import argparse
 import errno
+import subprocess
 import math
 import numpy as np
 from collections import defaultdict, OrderedDict
@@ -39,6 +40,8 @@ def parse_args():
     parser.add_argument('-freq', '--print_freq', default=100)
     parser.add_argument('-ms', '--selection', default='latest_epoch.bin', type=str, metavar='FILENAME', help='checkpoint to finetune (file name)')
     parser.add_argument('-sd', '--seed', default=0, type=int, help='random seed')
+    parser.add_argument('--epoch_script', type=str, default="infer_unity.sh",  help='execute after echo epoch ')
+    parser.add_argument('--debug', type=int, default=0,  help='is debug mode ')
     opts = parser.parse_args()
     return opts
 
@@ -152,6 +155,10 @@ def save_checkpoint(chk_path, epoch, lr, optimizer, model, best_jpe):
     }, chk_path)
 
 def train_with_config(args, opts):
+    opts.debug = opts.debug != 0
+    if(opts.debug):
+        args.batch_size = 1
+    print(opts)
     print(args)
     try:
         os.makedirs(opts.checkpoint)
@@ -200,8 +207,8 @@ def train_with_config(args, opts):
           'persistent_workers': True
     }
 
-    train_dataset = UnityDataset3D(args, args.subset_list, 'train')
-    test_dataset = UnityDataset3D(args, args.subset_list, 'test')
+    train_dataset = UnityDataset3D(args, args.subset_list, 'train', opts.debug)
+    test_dataset = UnityDataset3D(args, args.subset_list, 'test', opts.debug)
     
     train_loader = DataLoader(train_dataset, **trainloader_params)
     test_loader = DataLoader(test_dataset, **testloader_params)
@@ -290,6 +297,13 @@ def train_with_config(args, opts):
             if best_jpe_cur < best_jpe:
                 best_jpe = best_jpe_cur
                 save_checkpoint(best_chk_path, epoch, lr, optimizer, model, best_jpe)
+
+
+            # execute script 
+            if opts.epoch_script != "":
+                script_path = os.path.join(os.getcwd(),opts.epoch_script)
+                print(f"======= run scirpt {script_path} {epoch} ======= ")
+                process = subprocess.Popen([script_path, str(epoch)])
 
 if __name__ == "__main__":
     opts = parse_args()
