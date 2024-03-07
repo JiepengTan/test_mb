@@ -22,7 +22,7 @@ unzip  $dir_name -d ./unity_data/
 python tools/convert_unity2pkl.py ./unity_data/ ./data/unity/unity
 
 if [ $is_need_train -eq 1 ]; then
-    ./train_unity.sh
+    #./train_unity.sh
 fi
 
 
