@@ -11,6 +11,12 @@ import shutil
 
 from concurrent.futures import ProcessPoolExecutor
 
+VIDEO_COUNT = 1000
+FRAME_COUNT = 243
+BONE_COUNT = 52
+BONE_SMPL_COUNT = 52
+
+
 def parse_unity_data(input_path, output_dir):
     with open(input_path, 'rb') as f:
         startIdx = struct.unpack('i', f.read(4))[0]
@@ -35,13 +41,13 @@ def parse_unity_data(input_path, output_dir):
             for _ in range(data_dirs_size):
                 data_dirs_flat.append(struct.unpack('f', f.read(4))[0])
 
-            data_input = np.array(data_input_flat).reshape((243, 17, 3))
-            data_label = np.array(data_label_flat).reshape((243, 17, 3))
-            data_dirs = np.array(data_dirs_flat).reshape((243, 24, 6)) # forward, up
+            data_input = np.array(data_input_flat).reshape((FRAME_COUNT, BONE_COUNT, 3))
+            data_label = np.array(data_label_flat).reshape((FRAME_COUNT, BONE_COUNT, 3))
+            data_dirs = np.array(data_dirs_flat).reshape((FRAME_COUNT, BONE_SMPL_COUNT, 6)) # forward, up
 
             # check if the vectors are orthogonal
-            forward_vectors = data_dirs[:, :, 0:3].reshape(-1, 3)  # Reshape to [243*24, 3]
-            up_vectors = data_dirs[:, :, 3:6].reshape(-1, 3)      # Reshape to [243*24, 3]
+            forward_vectors = data_dirs[:, :, 0:3].reshape(-1, 3)  # Reshape to [FRAME_COUNT*BONE_SMPL_COUNT, 3]
+            up_vectors = data_dirs[:, :, 3:6].reshape(-1, 3)      # Reshape to [FRAME_COUNT*BONE_SMPL_COUNT, 3]
 
             # Calculate dot products and sum their absolute values
             dot_products = np.sum(forward_vectors * up_vectors, axis=1)  # Element-wise multiplication and sum over the last dimension
@@ -67,7 +73,7 @@ def parse_unity_data(input_path, output_dir):
                 print("write file " + output_path)
             idx = idx +1
         
-        print(f"dirs' dot.avg= {dot_sum/(243*24*length)} len.avg = {len_sum/(243*24*length) /2} ")
+        print(f"dirs' dot.avg= {dot_sum/(FRAME_COUNT*BONE_SMPL_COUNT*length)} len.avg = {len_sum/(FRAME_COUNT*BONE_SMPL_COUNT*length) /2} ")
 
 def test_read(input_dir, idx):
     motion_file = read_pkl(os.path.join(input_dir, "%08d.pkl" % idx))
@@ -122,7 +128,7 @@ def convert_all(root_path, output_dir):
         os.makedirs(output_dir)
     data_path = root_path
     motion_list = sorted(os.listdir(data_path))
-    print("total count " + str(len(motion_list) * 1000))
+    print("total count " + str(len(motion_list) * VIDEO_COUNT))
 
     # Use a process pool to execute parse_unity_data in parallel
     with ProcessPoolExecutor() as executor:

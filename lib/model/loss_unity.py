@@ -55,7 +55,7 @@ class UnityLoss(nn.Module):
 
         pred_dir_f = pred_f.reshape(N,T,J,3)
         real_dir_f = real_f.reshape(N,T,J,3)
-        loss_dict['loss_av'] = loss_angle_velocity_unity(pred_dir_f,real_dir_f)
+        loss_dict['loss_av'] = loss_dir_angle_velocity_unity(pred_dir_f,real_dir_f)
 
         #print(loss_dict['loss_av'])
         # TODO: Implement loss_3d_pos calculations

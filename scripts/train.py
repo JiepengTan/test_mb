@@ -22,7 +22,7 @@ from lib.utils.tools import *
 from lib.utils.learning import *
 from lib.utils.utils_data import flip_data
 from lib.data.dataset_motion_2d import PoseTrackDataset2D, InstaVDataset2D
-from lib.data.dataset_motion_3d import MotionDataset3D
+from lib.data.dataset_unity import UnityDataset3D
 from lib.data.augmentation import Augmenter2D
 from lib.data.datareader_h36m import DataReaderH36M  
 from lib.model.loss import *
@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument('-ms', '--selection', default='latest_epoch.bin', type=str, metavar='FILENAME', help='checkpoint to finetune (file name)')
     parser.add_argument('-sd', '--seed', default=0, type=int, help='random seed')
     parser.add_argument('--epoch_script', type=str, default="infer_pose3d.sh",  help='execute after echo epoch ')
+    parser.add_argument('--debug', type=int, default=0,  help='is debug mode ') 
 
     opts = parser.parse_args()
     return opts
@@ -63,7 +64,8 @@ def evaluate(args, model_pos, test_loader, datareader):
     gt_all = []
     model_pos.eval()            
     with torch.no_grad():
-        for batch_input, batch_gt in tqdm(test_loader):
+        for batch_input, batch_gt in tqdm(test_loader): 
+            batch_gt = batch_gt["kp_3d"]     
             N, T = batch_gt.shape[:2]
             if torch.cuda.is_available():
                 batch_input = batch_input.cuda()
@@ -119,7 +121,8 @@ def evaluate(args, model_pos, test_loader, datareader):
 def train_epoch(args, model_pos, train_loader, losses, optimizer, has_3d, has_gt):
     model_pos.train()
     for idx, (batch_input, batch_gt) in tqdm(enumerate(train_loader)):    
-        batch_size = len(batch_input)        
+        batch_size = len(batch_input)   
+        batch_gt = batch_gt["kp_3d"] 
         if torch.cuda.is_available():
             batch_input = batch_input.cuda()
             batch_gt = batch_gt.cuda()
@@ -170,6 +173,9 @@ def train_epoch(args, model_pos, train_loader, losses, optimizer, has_3d, has_gt
         optimizer.step()
 
 def train_with_config(args, opts):
+    opts.debug = opts.debug != 0
+    if(opts.debug):
+        args.batch_size = 1
     print(args)
     try:
         os.makedirs(opts.checkpoint)
@@ -198,8 +204,9 @@ def train_with_config(args, opts):
           'persistent_workers': True
     }
 
-    train_dataset = MotionDataset3D(args, args.subset_list, 'train')
-    test_dataset = MotionDataset3D(args, args.subset_list, 'test')
+    train_dataset = UnityDataset3D(args, args.subset_list, 'train', opts.debug)
+    test_dataset = UnityDataset3D(args, args.subset_list, 'test', opts.debug)
+
     train_loader_3d = DataLoader(train_dataset, **trainloader_params)
     test_loader = DataLoader(test_dataset, **testloader_params)
     

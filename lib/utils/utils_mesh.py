@@ -3,7 +3,7 @@ import numpy as np
 from torch.nn import functional as F
 import copy
 # from lib.utils.rotation_conversions import axis_angle_to_matrix, matrix_to_rotation_6d
-
+JOINT_COUNT = 52 # unity joint count with hands
 
 def batch_rodrigues(axisang):
     # This function is borrowed from https://github.com/MandyMo/pytorch_HMR/blob/master/src/util.py#L37
@@ -570,6 +570,6 @@ def flip_thetas_batch(thetas):
 
 # (N*T, [forward_dir, up_dir])
 def unity_rot_to_angle_axis(pred_pose):
-    pred_rotmat = rot6d_to_rotmat(pred_pose).view(-1, 24, 3, 3)
-    pose = rotation_matrix_to_angle_axis(pred_rotmat.reshape(-1, 3, 3)).reshape(-1, 72) # (NT, 72)
+    pred_rotmat = rot6d_to_rotmat(pred_pose).view(-1, JOINT_COUNT, 3, 3)
+    pose = rotation_matrix_to_angle_axis(pred_rotmat.reshape(-1, 3, 3)).reshape(-1, JOINT_COUNT*3) # (NT, 72)
     return pose
