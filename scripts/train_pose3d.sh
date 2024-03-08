@@ -38,7 +38,7 @@ nohup tensorboard --port 6007 --logdir $dir_path/logs/ &
 
 echo "====start result render===="
 rm -rf ./examples/train_result/
-#nohup python tools/render_infer_result.py &
+nohup python tools/render_infer_result.py &
 
 # view the train logs
 tail -f $nohup_train_log

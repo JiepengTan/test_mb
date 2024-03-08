@@ -45,14 +45,15 @@ class UnityDataset3D(MotionDataset):
         self.synthetic = args.synthetic
         self.aug = Augmenter3D(args)
         self.gt_2d = args.gt_2d
+        self.num_joints = args.num_joints
 
     def __getitem__(self, index):
         'Generates one sample of data'
         # Select sample
         file_path = self.file_list[index]
         motion_file = read_pkl(file_path)
-        motion_3d17 = motion_file["data_label"]  
-        motion_3d17 = torch.FloatTensor(motion_3d17)
+        motion_3d = motion_file["data_label"]  
+        motion_3d = torch.FloatTensor(motion_3d)
         motion_2d = motion_file["data_input"]
         motion_2d = torch.FloatTensor(motion_2d)
 
@@ -64,11 +65,17 @@ class UnityDataset3D(MotionDataset):
         # motion_3d24 = motion_file["data_kp3d"]  
         # motion_3d24 = torch.FloatTensor(motion_3d24)
         dir_fu = bone_forward_up_dir  # [243, 24, 6]
+        
+        if(self.num_joints != 52):
+            motion_2d = motion_2d[:,:22,:]
+            motion_3d = motion_3d[:,:22,:]
+            dir_fu = dir_fu[:,:22,:]
+            # motion_theta = motion_theta[:,:22,:] # TODO check the shape of motion_theta
 
         # convert unity forward_dir and up_dir to angle_axis
         motion_smpl_3d = {
             'theta': motion_theta,       # bone rotation forward up
-            'kp_3d': motion_3d17,       # 3D mesh vertices
+            'kp_3d': motion_3d,       # 3D mesh vertices
             'dir_fu':dir_fu,            # bone rotation forward up
             # 'kp_3d24': motion_3d24,        # 3D keypoints 24
         }

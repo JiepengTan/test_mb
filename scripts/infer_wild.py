@@ -46,10 +46,10 @@ def run_3d_pose_estimation(opts):
 
     if opts.pixel:
         # Keep relative scale with pixel coornidates
-        wild_dataset = WildDetDataset(opts.json_path, clip_len=opts.clip_len, vid_size=vid_size, scale_range=None, focus=opts.focus)
+        wild_dataset = WildDetDataset(opts.json_path, clip_len=opts.clip_len, vid_size=vid_size, scale_range=None, focus=opts.focus, num_joints = args.num_joints)
     else:
         # Scale to [-1,1]
-        wild_dataset = WildDetDataset(opts.json_path, clip_len=opts.clip_len, scale_range=[1,1], focus=opts.focus)
+        wild_dataset = WildDetDataset(opts.json_path, clip_len=opts.clip_len, scale_range=[1,1], focus=opts.focus,num_joints = args.num_joints)
 
     test_loader = DataLoader(wild_dataset, **testloader_params)
 

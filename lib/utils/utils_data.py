@@ -61,62 +61,87 @@ def flip_data(data):
     Return
         result: same
     """
-    #left_joints = [4, 5, 6, 11, 12, 13]
-    #right_joints = [1, 2, 3, 14, 15, 16]
-    left_joints = [
-        1,# LeftUpperLeg
-        3,# LeftLowerLeg
-        5,# LeftFoot
-        12,# LeftShoulder
-        14,# LeftUpperArm
-        16,# LeftLowerArm
-        18,# LeftHand
-        20,# LeftToes
-        22,# LeftThumbProximal
-        23,# LeftThumbIntermediate
-        24,# LeftThumbDistal
-        25,# LeftIndexProximal
-        26,# LeftIndexIntermediate
-        27,# LeftIndexDistal
-        28,# LeftMiddleProximal
-        29,# LeftMiddleIntermediate
-        30,# LeftMiddleDistal
-        31,# LeftRingProximal
-        32,# LeftRingIntermediate
-        33,# LeftRingDistal
-        34,# LeftLittleProximal
-        35,# LeftLittleIntermediate
-        36,# LeftLittleDistal
-    ]
-    right_joints = [
-        2,# RightUpperLeg
-        4,# RightLowerLeg
-        6,# RightFoot
-        13,# RightShoulder
-        15,# RightUpperArm
-        17,# RightLowerArm
-        19,# RightHand
-        21,# RightToes
-        37,# RightThumbProximal
-        38,# RightThumbIntermediate
-        39,# RightThumbDistal
-        40,# RightIndexProximal
-        41,# RightIndexIntermediate
-        42,# RightIndexDistal
-        43,# RightMiddleProximal
-        44,# RightMiddleIntermediate
-        45,# RightMiddleDistal
-        46,# RightRingProximal
-        47,# RightRingIntermediate
-        48,# RightRingDistal
-        49,# RightLittleProximal
-        50,# RightLittleIntermediate
-        51,# RightLittleDistal
-    ]
+
+    left_joints = [4, 5, 6, 11, 12, 13]
+    right_joints = [1, 2, 3, 14, 15, 16]
+    if(data.shape[-2]== 52) :
+        left_joints = [
+            1,# LeftUpperLeg
+            3,# LeftLowerLeg
+            5,# LeftFoot
+            12,# LeftShoulder
+            14,# LeftUpperArm
+            16,# LeftLowerArm
+            18,# LeftHand
+            20,# LeftToes
+            22,# LeftThumbProximal
+            23,# LeftThumbIntermediate
+            24,# LeftThumbDistal
+            25,# LeftIndexProximal
+            26,# LeftIndexIntermediate
+            27,# LeftIndexDistal
+            28,# LeftMiddleProximal
+            29,# LeftMiddleIntermediate
+            30,# LeftMiddleDistal
+            31,# LeftRingProximal
+            32,# LeftRingIntermediate
+            33,# LeftRingDistal
+            34,# LeftLittleProximal
+            35,# LeftLittleIntermediate
+            36,# LeftLittleDistal
+        ]
+        right_joints = [
+            2,# RightUpperLeg
+            4,# RightLowerLeg
+            6,# RightFoot
+            13,# RightShoulder
+            15,# RightUpperArm
+            17,# RightLowerArm
+            19,# RightHand
+            21,# RightToes
+            37,# RightThumbProximal
+            38,# RightThumbIntermediate
+            39,# RightThumbDistal
+            40,# RightIndexProximal
+            41,# RightIndexIntermediate
+            42,# RightIndexDistal
+            43,# RightMiddleProximal
+            44,# RightMiddleIntermediate
+            45,# RightMiddleDistal
+            46,# RightRingProximal
+            47,# RightRingIntermediate
+            48,# RightRingDistal
+            49,# RightLittleProximal
+            50,# RightLittleIntermediate
+            51,# RightLittleDistal
+        ]
+    if(data.shape[-2]== 22) :
+        left_joints = [
+            1,# LeftUpperLeg
+            3,# LeftLowerLeg
+            5,# LeftFoot
+            12,# LeftShoulder
+            14,# LeftUpperArm
+            16,# LeftLowerArm
+            18,# LeftHand
+            20,# LeftToes
+        ]
+        right_joints = [
+            2,# RightUpperLeg
+            4,# RightLowerLeg
+            6,# RightFoot
+            13,# RightShoulder
+            15,# RightUpperArm
+            17,# RightLowerArm
+            19,# RightHand
+            21,# RightToes
+        ]
+
     flipped_data = copy.deepcopy(data)
     flipped_data[..., 0] *= -1                                               # flip x of all joints
     flipped_data[..., left_joints+right_joints, :] = flipped_data[..., right_joints+left_joints, :]
     return flipped_data
+
 
 # 帧采样
 def resample(ori_len, target_len, replay=False, randomness=True):

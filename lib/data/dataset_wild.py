@@ -64,7 +64,7 @@ def halpe2h36m(x):
     y[:,16,:] = x[:,10,:]
     return y
     
-def read_input(json_path, vid_size, scale_range, focus):
+def read_input(json_path, vid_size, scale_range, focus,num_joints):
     with open(json_path, "r") as read_file:
         results = json.load(read_file)
     kpts_all = []
@@ -74,7 +74,14 @@ def read_input(json_path, vid_size, scale_range, focus):
         kpts = np.array(item['keypoints']).reshape([-1,3])
         kpts_all.append(kpts)
     kpts_all = np.array(kpts_all)
-    # kpts_all = halpe2h36m(kpts_all) #now use unity's format 52 joints
+
+    if num_joints == 17: # old AlphaPose data 
+        kpts_all = halpe2h36m(kpts_all) 
+    if num_joints == 22: # unity avatar 
+        kpts_all = kpts_all[:,:22,:]
+    if num_joints == 52: # unity avatar with hands
+        pass
+
     if vid_size:
         w, h = vid_size
         scale = min(w,h) / 2.0
@@ -86,10 +93,11 @@ def read_input(json_path, vid_size, scale_range, focus):
     return motion.astype(np.float32)
 
 class WildDetDataset(Dataset):
-    def __init__(self, json_path, clip_len=243, vid_size=None, scale_range=None, focus=None):
+    def __init__(self, json_path, clip_len=243, vid_size=None, scale_range=None, focus=None, num_joints = 17):
         self.json_path = json_path
         self.clip_len = clip_len
-        self.vid_all = read_input(json_path, vid_size, scale_range, focus)
+        self.vid_all = read_input(json_path, vid_size, scale_range, focus,num_joints)
+
         
     def __len__(self):
         'Denotes the total number of samples'

@@ -24,7 +24,6 @@ from lib.utils.utils_data import flip_data
 from lib.data.dataset_motion_2d import PoseTrackDataset2D, InstaVDataset2D
 from lib.data.dataset_unity import UnityDataset3D
 from lib.data.augmentation import Augmenter2D
-from lib.data.datareader_h36m import DataReaderH36M  
 from lib.model.loss import *
 
 
@@ -58,14 +57,14 @@ def save_checkpoint(chk_path, epoch, lr, optimizer, model_pos, min_loss):
         'min_loss' : min_loss
     }, chk_path)
     
-def evaluate(args, model_pos, test_loader, datareader):
+def evaluate(args, model_pos, test_loader):
     print('INFO: Testing')
     results_all = []
     gt_all = []
     model_pos.eval()            
     with torch.no_grad():
         for batch_input, batch_gt in tqdm(test_loader): 
-            batch_gt = batch_gt["kp_3d"]     
+            batch_gt = batch_gt["kp_3d"]   
             N, T = batch_gt.shape[:2]
             if torch.cuda.is_available():
                 batch_input = batch_input.cuda()
@@ -123,6 +122,7 @@ def train_epoch(args, model_pos, train_loader, losses, optimizer, has_3d, has_gt
     for idx, (batch_input, batch_gt) in tqdm(enumerate(train_loader)):    
         batch_size = len(batch_input)   
         batch_gt = batch_gt["kp_3d"] 
+
         if torch.cuda.is_available():
             batch_input = batch_input.cuda()
             batch_gt = batch_gt.cuda()
@@ -216,7 +216,6 @@ def train_with_config(args, opts):
         instav = InstaVDataset2D()
         instav_loader_2d = DataLoader(instav, **trainloader_params)
         
-    datareader = DataReaderH36M(n_frames=args.clip_len, sample_stride=args.sample_stride, data_stride_train=args.data_stride, data_stride_test=args.clip_len, dt_root = 'data/motion3d', dt_file=args.dt_file)
     min_loss = 100000
     model_backbone = load_backbone(args)
     model_params = 0
@@ -308,7 +307,7 @@ def train_with_config(args, opts):
                     lr,
                    losses['3d_pos'].avg))
             else:
-                e1, e2, results_all = evaluate(args, model_pos, test_loader, datareader)
+                e1, e2, results_all = evaluate(args, model_pos, test_loader)
                 print('[%d] $$$time %.2f lr %f e1 %f e2 %f loss_3d_pos %f loss_2d_proj %f loss_3d_scale %f loss_3d_velocity %f loss_lv %f loss_lg %f loss_a %f loss_av %f loss_total %f' % (
                     epoch + 1, elapsed, lr,  e1, e2
                     , losses['3d_pos'].avg
@@ -355,10 +354,12 @@ def train_with_config(args, opts):
                 process = subprocess.Popen([script_path, str(epoch)])
 
     if opts.evaluate:
-        e1, e2, results_all = evaluate(args, model_pos, test_loader, datareader)
+        e1, e2, results_all = evaluate(args, model_pos, test_loader)
 
 if __name__ == "__main__":
     opts = parse_args()
     set_random_seed(opts.seed)
     args = get_config(opts.config)
+
+    set_unity_data_format(args.num_joints)
     train_with_config(args, opts)

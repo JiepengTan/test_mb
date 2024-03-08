@@ -30,7 +30,7 @@ clip_len: 243
 data_stride: 81
 rootrel: True
 sample_stride: 1
-num_joints: 52
+num_joints: 22
 no_conf: False
 gt_2d: False
 
