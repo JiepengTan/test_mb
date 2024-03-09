@@ -13,7 +13,7 @@ echo $is_debug
 dir_name=ft_unity
 
 dir_path=./checkpoint/pose3d/$dir_name
-rm -rf $dir_path
+#rm -rf $dir_path
 mkdir -p $dir_path
 
 ps -ef | grep python | awk '{print $2}' | xargs kill -9
@@ -28,7 +28,7 @@ fi
 # start train task
 echo "==============start train $dir_path =================="
 
-nohup python train.py  --debug ${is_debug} --config configs/pose3d/MB_train_unity.yaml --checkpoint checkpoint/pose3d/${dir_name} > ${nohup_train_log}  2>&1 &
+nohup python train.py --resume "True"  --debug ${is_debug} --config configs/pose3d/MB_train_unity.yaml --checkpoint checkpoint/pose3d/${dir_name} > ${nohup_train_log}  2>&1 &
 
 
 echo "==============start tensorboard =================="
@@ -43,6 +43,4 @@ nohup python tools/render_infer_result.py &
 # view the train logs
 tail -f $nohup_train_log
 
-#ps -ef | grep tensorboard | awk '{print $2}' | xargs kill -9
-#nohup tensorboard --port 6007 --logdir ./checkpoint/pose3d/ft_unity/logs/ &
 # tail -f ./checkpoint/pose3d/ft_unity/nohup_train.out
